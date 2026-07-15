@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OGABUY Inventory Management System</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1E3A8A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OGABUY">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --ink:#0F172A; --paper:#F7F8FB; --card:#FFFFFF;
+  --blue-900:#132A6E; --blue-700:#1E3A8A; --blue-600:#2452C9; --blue-500:#2F6BFF;
+  --orange-600:#EA580C; --orange-500:#F97316; --orange-100:#FFEDD9;
+  --slate-500:#64748B; --slate-200:#E2E8F0; --slate-100:#F1F5F9;
+  --green-600:#16A34A; --red-600:#DC2626; --amber-600:#D97706;
+}
+*{box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);margin:0}
+h1,h2,h3,h4,.font-display{font-family:'Poppins',sans-serif}
+.brand-mark{background:linear-gradient(135deg,var(--blue-700),var(--blue-900));}
+.accent-bar{background:linear-gradient(90deg,var(--orange-500),var(--orange-600));}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
+.nav-link{display:flex;align-items:center;gap:.65rem;padding:.6rem .85rem;border-radius:.6rem;color:#CBD5E1;font-size:.875rem;font-weight:500;cursor:pointer;transition:.15s;border-left:3px solid transparent}
+.nav-link:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-link.active{background:rgba(249,115,22,.14);color:#fff;border-left-color:var(--orange-500)}
+.nav-link svg{width:18px;height:18px;flex-shrink:0}
+.page{display:none}
+.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--slate-200);border-radius:.85rem}
+.stat-card{background:var(--card);border:1px solid var(--slate-200);border-radius:1rem;padding:1.1rem 1.2rem;position:relative;overflow:hidden}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;font-weight:600;font-size:.85rem;padding:.55rem 1rem;border-radius:.55rem;cursor:pointer;transition:.15s;border:1px solid transparent;white-space:nowrap}
+.btn-primary{background:var(--blue-700);color:#fff}
+.btn-primary:hover{background:var(--blue-900)}
+.btn-orange{background:var(--orange-500);color:#fff}
+.btn-orange:hover{background:var(--orange-600)}
+.btn-outline{background:#fff;border-color:var(--slate-200);color:var(--ink)}
+.btn-outline:hover{background:var(--slate-100)}
+.btn-danger{background:#FEE2E2;color:var(--red-600)}
+.btn-danger:hover{background:#FECACA}
+.btn-sm{padding:.35rem .65rem;font-size:.78rem}
+.input{width:100%;padding:.55rem .75rem;border:1px solid var(--slate-200);border-radius:.55rem;font-size:.875rem;background:#fff;outline:none}
+.input:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(47,107,255,.12)}
+label.lbl{font-size:.78rem;font-weight:600;color:var(--slate-500);margin-bottom:.25rem;display:block}
+table.tbl{width:100%;border-collapse:collapse;font-size:.85rem}
+table.tbl th{text-align:left;padding:.65rem .8rem;background:var(--slate-100);color:var(--slate-500);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;position:sticky;top:0}
+table.tbl td{padding:.65rem .8rem;border-top:1px solid var(--slate-100)}
+table.tbl tr:hover td{background:#FAFBFF}
+.badge{display:inline-flex;align-items:center;padding:.15rem .55rem;border-radius:999px;font-size:.72rem;font-weight:600}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:50;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:2.5rem 1rem}
+.modal-box{background:#fff;border-radius:1rem;width:100%;max-width:640px;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:pop .15s ease}
+@keyframes pop{from{transform:scale(.97);opacity:0}to{transform:scale(1);opacity:1}}
+.toast{position:fixed;bottom:1.25rem;right:1.25rem;z-index:100;display:flex;flex-direction:column;gap:.5rem}
+.toast-item{background:#0F172A;color:#fff;padding:.7rem 1rem;border-radius:.6rem;font-size:.85rem;box-shadow:0 8px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:.5rem;min-width:220px;animation:slidein .2s ease}
+@keyframes slidein{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+.dot{width:8px;height:8px;border-radius:50%}
+.receipt-watermark{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.receipt-watermark svg text{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@media print{
+  body *{visibility:hidden}
+  #receiptPrintArea, #receiptPrintArea *{visibility:visible}
+  #receiptPrintArea{position:absolute;left:0;top:0;width:80mm}
+}
+.tab-btn{padding:.5rem 1rem;font-size:.85rem;font-weight:600;color:var(--slate-500);border-bottom:2px solid transparent;cursor:pointer}
+.tab-btn.active{color:var(--blue-700);border-color:var(--orange-500)}
+.spinner{width:1rem;height:1rem;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.skeleton{background:linear-gradient(90deg,#EEF1F6 25%,#E4E8F0 37%,#EEF1F6 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite}
+@keyframes shimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
+</style>
+</head>
+<body>
+
+<!-- PIN GATE -->
+<div id="pinGate" class="fixed inset-0 z-[300] flex items-center justify-center px-4" style="background:radial-gradient(circle at 20% 20%,#1E3A8A 0%,#0B1A46 55%,#0A1533 100%)">
+  <div class="w-full max-w-xs text-center">
+    <div class="w-14 h-14 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center mx-auto mb-3">
+      <span class="font-display font-extrabold text-2xl text-orange-400">O</span>
+    </div>
+    <h1 class="font-display text-white font-bold text-lg mb-1">OGABUY</h1>
+    <p class="text-blue-200 text-xs mb-5">Enter the access PIN to continue</p>
+    <div class="bg-white rounded-2xl shadow-2xl p-6">
+      <input id="pinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off"
+        class="input text-center tracking-[0.5em] text-xl font-bold" placeholder="&bull;&bull;&bull;&bull;"
+        onkeydown="if(event.key==='Enter')checkPinGate()">
+      <p id="pinError" class="text-red-600 text-xs font-medium mt-2 hidden">Incorrect PIN. Try again.</p>
+      <button onclick="checkPinGate()" class="btn btn-orange w-full mt-4 py-2.5">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING SCREEN -->
+<div id="bootScreen" class="fixed inset-0 z-[200] flex items-center justify-center brand-mark">
+  <div class="text-center">
+    <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-4">
+      <span class="font-display font-extrabold text-3xl text-orange-400">O</span>
+    </div>
+    <p class="text-white/80 text-sm font-medium tracking-wide">Loading OGABUY&hellip;</p>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen" class="hidden min-h-screen flex items-center justify-center px-4 py-10" style="background:radial-gradient(circle at 20% 20%,#1E3A8A 0%,#0B1A46 55%,#0A1533 100%)">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-6">
+      <div class="w-14 h-14 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center mx-auto mb-3">
+        <span class="font-display font-extrabold text-2xl text-orange-400">O</span>
+      </div>
+      <h1 class="font-display text-white font-bold text-xl">OGABUY</h1>
+      <p class="text-blue-200 text-xs tracking-widest uppercase mt-1">Inventory Management System</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-7">
+      <div id="loginPane">
+        <h2 class="font-display font-semibold text-lg mb-1">Welcome back</h2>
+        <p class="text-slate-500 text-sm mb-5">Sign in to your OGABUY workspace.</p>
+        <div class="space-y-3">
+          <div>
+            <label class="lbl">Email</label>
+            <input id="loginEmail" type="email" class="input" placeholder="you@ogabuy.com">
+          </div>
+          <div>
+            <label class="lbl">Password</label>
+            <input id="loginPassword" type="password" class="input" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+          </div>
+          <p id="loginError" class="text-red-600 text-xs font-medium hidden"></p>
+          <button id="loginBtn" onclick="doLogin()" class="btn btn-primary w-full py-2.5">Sign in</button>
+          <button onclick="showForgot()" class="text-xs text-slate-500 hover:text-blue-700 w-full text-center block">Forgot password?</button>
+        </div>
+        <div class="mt-5 pt-4 border-t border-slate-100 text-center">
+          <button onclick="switchAuthPane('setupPane')" class="text-xs text-slate-500">First time setting up OGABUY? <span class="text-orange-600 font-semibold">Create the admin account</span></button>
+        </div>
+      </div>
+
+      <div id="setupPane" class="hidden">
+        <h2 class="font-display font-semibold text-lg mb-1">Create Super Admin</h2>
+        <p class="text-slate-500 text-sm mb-5">This one-time setup creates the first administrator account for your business.</p>
+        <div class="space-y-3">
+          <div>
+            <label class="lbl">Business name</label>
+            <input id="setupBizName" type="text" class="input" placeholder="OGABUY Stores">
+          </div>
+          <div>
+            <label class="lbl">Your full name</label>
+            <input id="setupName" type="text" class="input" placeholder="Jane Doe">
+          </div>
+          <div>
+            <label class="lbl">Email</label>
+            <input id="setupEmail" type="email" class="input" placeholder="admin@ogabuy.com">
+          </div>
+          <div>
+            <label class="lbl">Password</label>
+            <input id="setupPassword" type="password" class="input" placeholder="Minimum 6 characters">
+          </div>
+          <p id="setupError" class="text-red-600 text-xs font-medium hidden"></p>
+          <button id="setupBtn" onclick="doSetup()" class="btn btn-orange w-full py-2.5">Create admin account</button>
+        </div>
+        <div class="mt-5 pt-4 border-t border-slate-100 text-center">
+          <button onclick="switchAuthPane('loginPane')" class="text-xs text-slate-500">Already have an account? <span class="text-blue-700 font-semibold">Sign in</span></button>
+        </div>
+      </div>
+
+      <div id="forgotPane" class="hidden">
+        <h2 class="font-display font-semibold text-lg mb-1">Reset password</h2>
+        <p class="text-slate-500 text-sm mb-5">We'll email you a link to reset your password.</p>
+        <div class="space-y-3">
+          <div>
+            <label class="lbl">Email</label>
+            <input id="forgotEmail" type="email" class="input" placeholder="you@ogabuy.com">
+          </div>
+          <p id="forgotMsg" class="text-xs font-medium hidden"></p>
+          <button onclick="doForgot()" class="btn btn-primary w-full py-2.5">Send reset link</button>
+        </div>
+        <div class="mt-5 pt-4 border-t border-slate-100 text-center">
+          <button onclick="switchAuthPane('loginPane')" class="text-xs text-slate-500">Back to sign in</button>
+        </div>
+      </div>
+    </div>
+    <p class="text-center text-blue-300/60 text-xs mt-5">&copy; <span id="yearNow"></span> OGABUY. All rights reserved.</p>
+  </div>
+</div>
+<div id="appShell" class="hidden min-h-screen">
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="fixed z-40 inset-y-0 left-0 w-64 brand-mark flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-200">
+    <div class="flex items-center gap-2.5 px-5 h-16 border-b border-white/10">
+      <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+        <span class="font-display font-extrabold text-orange-400">O</span>
+      </div>
+      <div class="leading-tight">
+        <p class="font-display font-bold text-white text-sm">OGABUY</p>
+        <p class="text-blue-300 text-[10px] tracking-widest uppercase">Inventory System</p>
+      </div>
+    </div>
+    <nav id="navList" class="flex-1 overflow-y-auto px-3 py-4 space-y-1"></nav>
+    <div class="p-3 border-t border-white/10">
+      <div class="flex items-center gap-2.5 px-2 py-2 rounded-xl bg-white/5">
+        <div id="userAvatar" class="w-9 h-9 rounded-full bg-orange-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">?</div>
+        <div class="min-w-0 flex-1">
+          <p id="userNameLbl" class="text-white text-xs font-semibold truncate">&mdash;</p>
+          <p id="userRoleLbl" class="text-blue-300 text-[10px] truncate">&mdash;</p>
+        </div>
+        <button onclick="doLogout()" title="Sign out" class="text-blue-300 hover:text-white p-1.5 rounded-lg hover:bg-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div id="sidebarOverlay" onclick="toggleSidebar(false)" class="hidden fixed inset-0 bg-black/40 z-30 lg:hidden"></div>
+
+  <!-- MAIN -->
+  <div class="lg:pl-64 min-h-screen flex flex-col">
+    <!-- TOPBAR -->
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-20">
+      <button onclick="toggleSidebar()" class="lg:hidden p-2 -ml-2 text-slate-600">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" /></svg>
+      </button>
+      <div>
+        <h1 id="pageTitle" class="font-display font-bold text-lg text-slate-800">Dashboard</h1>
+        <p id="pageSubtitle" class="text-xs text-slate-400 hidden sm:block">&mdash;</p>
+      </div>
+      <div class="ml-auto flex items-center gap-2 sm:gap-3">
+        <div id="branchSwitcherHost"></div>
+        <div class="relative hidden md:block">
+          <button onclick="toggleNotifPanel()" class="p-2 rounded-lg hover:bg-slate-100 relative text-slate-600">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
+            <span id="notifDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-500"></span>
+          </button>
+          <div id="notifPanel" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 max-h-96 overflow-y-auto">
+            <div class="p-3 border-b border-slate-100 font-semibold text-sm">Notifications</div>
+            <div id="notifList" class="divide-y divide-slate-100"></div>
+          </div>
+        </div>
+        <button onclick="setPage('pos')" class="btn btn-orange btn-sm hidden sm:inline-flex">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.94-4.693 2.447-7.152.075-.364-.148-.75-.53-.75H5.25M7.5 14.25L5.106 5.272M7.5 14.25L6.75 9M6.75 9h13.5" /></svg>
+          New Sale
+        </button>
+        <button id="installAppBtn" onclick="installApp()" class="btn btn-outline btn-sm hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 6.75l-3-3m3 3l3-3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
+          <span class="hidden sm:inline">Install app</span>
+        </button>
+        <button id="darkModeBtn" onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-600">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-1 p-4 sm:p-6 max-w-[1600px] w-full mx-auto">
+      <div id="pageContainer"></div>
+    </main>
+  </div>
+</div>
+
+<div id="toastHost" class="toast"></div>
+<div id="modalHost"></div>
+<script>
+/* ============================= OGABUY IMS =============================
+   Single-file Inventory / POS system on Firebase (Auth + Firestore).
+   ======================================================================= */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC518YM7I5SJBpOSMsZptvN_qaO5M3ulNM",
+  authDomain: "zlove-8078a.firebaseapp.com",
+  projectId: "zlove-8078a",
+  storageBucket: "zlove-8078a.firebasestorage.app",
+  messagingSenderId: "1049200851049",
+  appId: "1:1049200851049:web:1d1e8a63812f83f9828af8"
+};
+
+firebase.initializeApp(firebaseConfig);
+const secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+const auth = firebase.auth();
+const secondaryAuth = secondaryApp.auth();
+const db = firebase.firestore();
+const FieldValue = firebase.firestore.FieldValue;
+
+/* ---------------------------- App State ---------------------------- */
+const STATE = {
+  user: null,
+  staff: null,          // {name, role, email, active, branchId}
+  company: { name: "OGABUY", address: "", phone: "", email: "", logoUrl: "", taxRate: 7.5, currency: "₦" },
+  branches: [],
+  currentBranchId: null, // "ALL" (Super Admin aggregate view) or a specific branch id
+  products: [],
+  customers: [],
+  suppliers: [],
+  sales: [],
+  purchases: [],
+  staffList: [],
+  stockMoves: [],
+  cart: [],             // {productId, name, price, qty, sku}
+  currentPage: "dashboard",
+  unsub: [],             // firestore listeners to detach on logout
+  darkMode: false,
+};
+
+const ROLE_NAV = {
+  "Super Admin": ["dashboard","products","pos","salesRecords","customers","suppliers","purchases","reports","staff","branches","settings"],
+  "Manager": ["dashboard","products","pos","salesRecords","customers","suppliers","purchases","reports","staff","settings"],
+  "Cashier": ["dashboard","pos","salesRecords","customers","reports"],
+  "Sales Representative": ["dashboard","pos","salesRecords","customers","products","reports"],
+  "Store Keeper": ["dashboard","products","suppliers","purchases","reports"],
+};
+
+const NAV_ITEMS = [
+  { key: "dashboard", label: "Dashboard", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>` },
+  { key: "pos", label: "Point of Sale", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.94-4.693 2.447-7.152.075-.364-.148-.75-.53-.75H5.25M7.5 14.25L5.106 5.272M7.5 14.25L6.75 9M6.75 9h13.5" /></svg>` },
+  { key: "salesRecords", label: "Sales Records", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-3.348-.35M18.75 4.97A48.416 48.416 0 0012 4.5c-1.153 0-2.294.056-3.42.166M6 18.75H5.25A2.25 2.25 0 013 16.5V6.108c0-1.135.845-2.098 1.976-2.192a48.424 48.424 0 013.348-.35m0 0c.098-.53.317-1.02.632-1.436M8.324 3.566A48.128 48.128 0 0112 3.375c1.288 0 2.55.08 3.783.234m0 0c.316.416.535.906.632 1.436m-4.415-1.67c-.213-.032-.428-.06-.645-.084M13.5 6h-3v1.5h3V6z" /></svg>` },
+  { key: "products", label: "Products", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>` },
+  { key: "customers", label: "Customers", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>` },
+  { key: "suppliers", label: "Suppliers", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h14.25c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" /></svg>` },
+  { key: "purchases", label: "Purchases", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185zM9.75 9h.008v.008H9.75V9zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 4.5h.008v.008h-.008V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>` },
+  { key: "reports", label: "Reports", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>` },
+  { key: "staff", label: "Staff & Roles", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>` },
+  { key: "branches", label: "Branches", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15l-.75 6h-13.5L4.5 3zM6 9v12m12-12v12M9.75 9v3.75m4.5-3.75v3.75M6 21v-3.75a1.5 1.5 0 011.5-1.5h9a1.5 1.5 0 011.5 1.5V21" /></svg>` },
+  { key: "settings", label: "Settings", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.49l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>` },
+];
+
+const PAGE_TITLES = {
+  dashboard: ["Dashboard", "Live overview of your business"],
+  products: ["Products", "Manage your catalog and stock"],
+  pos: ["Point of Sale", "Ring up sales fast"],
+  salesRecords: ["Sales Records", "Search and reprint any past sale"],
+  customers: ["Customers", "Manage customer relationships"],
+  suppliers: ["Suppliers", "Manage vendors and outstanding balances"],
+  purchases: ["Purchases", "Purchase orders & goods received"],
+  reports: ["Reports & Analytics", "Export business performance data"],
+  staff: ["Staff & Roles", "Manage team access"],
+  branches: ["Branches", "Create and manage store branches"],
+  settings: ["Settings", "Company profile & preferences"],
+};
+
+/* ---------------------------- Utilities ---------------------------- */
+function fmtMoney(n) {
+  n = Number(n) || 0;
+  return STATE.company.currency + " " + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtDate(d) {
+  if (!d) return "—";
+  const date = d.toDate ? d.toDate() : new Date(d);
+  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+function fmtDateTime(d) {
+  if (!d) return "—";
+  const date = d.toDate ? d.toDate() : new Date(d);
+  return date.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+function genReceiptNo() {
+  const d = new Date();
+  return "OGB" + d.getFullYear().toString().slice(2) + String(d.getMonth()+1).padStart(2,"0") + String(d.getDate()).padStart(2,"0") + "-" + Math.floor(1000+Math.random()*9000);
+}
+function esc(s) { return (s ?? "").toString().replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function uid() { return Math.random().toString(36).slice(2, 10); }
+
+function toast(msg, type) {
+  type = type || "info";
+  const colors = { info: "#0F172A", success: "#16A34A", error: "#DC2626", warn: "#D97706" };
+  const host = document.getElementById("toastHost");
+  const el = document.createElement("div");
+  el.className = "toast-item";
+  el.style.background = colors[type] || colors.info;
+  el.innerHTML = `<span>${esc(msg)}</span>`;
+  host.appendChild(el);
+  setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity .3s"; setTimeout(() => el.remove(), 300); }, 3200);
+}
+
+function openModal(html) {
+  const host = document.getElementById("modalHost");
+  host.innerHTML = `<div class="modal-backdrop" id="activeModalBackdrop">${html}</div>`;
+  host.querySelector("#activeModalBackdrop").addEventListener("click", (e) => {
+    if (e.target.id === "activeModalBackdrop") closeModal();
+  });
+}
+function closeModal() { document.getElementById("modalHost").innerHTML = ""; }
+
+function csvDownload(filename, rows) {
+  const csv = rows.map(r => r.map(c => {
+    const s = (c ?? "").toString();
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+  }).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function pdfDownload(title, head, body, filename) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.setTextColor(30, 58, 138);
+  doc.text(STATE.company.name || "OGABUY", 14, 15);
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text(title, 14, 21);
+  doc.text(new Date().toLocaleString(), 14, 26);
+  doc.autoTable({ head: [head], body: body, startY: 32, headStyles: { fillColor: [30, 58, 138] }, styles: { fontSize: 8 } });
+  doc.save(filename);
+}
+
+function permit(pages) { return pages.includes(STATE.currentPage) || true; }
+function canManage() { return STATE.staff && ["Super Admin","Manager"].includes(STATE.staff.role); }
+function isStoreKeeperOrAbove() { return STATE.staff && ["Super Admin","Manager","Store Keeper"].includes(STATE.staff.role); }
+
+function lowStockThreshold(p) { return p.reorderLevel != null ? Number(p.reorderLevel) : 5; }
+
+/* ---------------------------- Branches ---------------------------- */
+// The branch a Super Admin is currently "working as" (they can switch);
+// every other role is permanently locked to the branch on their staff profile.
+function activeBranchId() {
+  return STATE.staff?.role === "Super Admin" ? STATE.currentBranchId : (STATE.staff?.branchId || null);
+}
+function isAggregateView() { return STATE.staff?.role === "Super Admin" && STATE.currentBranchId === "ALL"; }
+function branchName(id) { const b = STATE.branches.find(x => x.id === id); return b ? b.name : "—"; }
+// Filters any branch-tagged array down to the active branch, unless the
+// Super Admin is viewing the "All branches" aggregate.
+function bScope(arr) {
+  if (isAggregateView()) return arr;
+  const bid = activeBranchId();
+  return arr.filter(x => x.branchId === bid);
+}
+function requireActiveBranch() {
+  const id = activeBranchId();
+  if (!id) { toast("Select a specific branch from the top bar first.", "warn"); return null; }
+  return id;
+}
+
+/* ---------------------------- Product Icons ---------------------------- */
+const PRODUCT_ICONS = [
+  { key: "phone", icon: "📱", label: "Phone" },
+  { key: "earphone", icon: "🎧", label: "Earphones" },
+  { key: "battery", icon: "🔋", label: "Battery" },
+  { key: "laptop", icon: "💻", label: "Laptop" },
+  { key: "camera", icon: "📷", label: "Camera" },
+  { key: "watch", icon: "⌚", label: "Watch" },
+  { key: "tv", icon: "📺", label: "TV" },
+  { key: "cable", icon: "🔌", label: "Cable/Charger" },
+  { key: "grocery", icon: "🛒", label: "Grocery" },
+  { key: "drink", icon: "🥤", label: "Drink" },
+  { key: "food", icon: "🍞", label: "Food" },
+  { key: "medicine", icon: "💊", label: "Medicine/Pharmacy" },
+  { key: "clothing", icon: "👕", label: "Clothing" },
+  { key: "shoes", icon: "👟", label: "Shoes" },
+  { key: "bag", icon: "👜", label: "Bag" },
+  { key: "book", icon: "📚", label: "Book/Stationery" },
+  { key: "tool", icon: "🔧", label: "Tools/Hardware" },
+  { key: "cosmetics", icon: "💄", label: "Cosmetics" },
+  { key: "toy", icon: "🧸", label: "Toys" },
+  { key: "box", icon: "📦", label: "General/Other" },
+];
+function iconEmoji(key) { const found = PRODUCT_ICONS.find(i => i.key === key); return found ? found.icon : "📦"; }
+function productThumb(p, sizeClass) {
+  sizeClass = sizeClass || "w-9 h-9";
+  if (p.imageUrl) return `<img src="${esc(p.imageUrl)}" class="${sizeClass} rounded-lg object-cover">`;
+  if (p.iconKey) return `<div class="${sizeClass} rounded-lg flex items-center justify-center text-lg" style="background:var(--slate-100)">${iconEmoji(p.iconKey)}</div>`;
+  return `<div class="${sizeClass} rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 text-xs font-bold">${esc((p.name||"?").charAt(0))}</div>`;
+}
+function iconPickerHtml(selectedKey) {
+  return `<div class="grid grid-cols-5 sm:grid-cols-7 gap-2" id="pf_iconGrid">
+    ${PRODUCT_ICONS.map(i => `
+      <button type="button" title="${esc(i.label)}" data-icon="${i.key}" onclick="selectProductIcon('${i.key}')"
+        class="icon-pick-btn aspect-square rounded-lg border flex items-center justify-center text-xl transition ${selectedKey===i.key ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'}">
+        ${i.icon}
+      </button>`).join("")}
+  </div>`;
+}
+function selectProductIcon(key) {
+  document.getElementById("pf_iconKey").value = key;
+  document.querySelectorAll("#pf_iconGrid .icon-pick-btn").forEach(btn => {
+    btn.classList.toggle("border-blue-600", btn.dataset.icon === key);
+    btn.classList.toggle("bg-blue-50", btn.dataset.icon === key);
+    btn.classList.toggle("border-slate-200", btn.dataset.icon !== key);
+  });
+}
+
+/* SVG tiled watermark — patterns fill the whole rect edge-to-edge regardless of rotation,
+   so it reliably covers every corner of the receipt (unlike a rotated flex/grid of text). */
+function watermarkSvg() {
+  const text = esc((STATE.company.name || "OGABUY").toUpperCase());
+  return `
+    <svg width="100%" height="100%" style="display:block">
+      <defs>
+        <pattern id="wmPattern" patternUnits="userSpaceOnUse" width="170" height="80" patternTransform="rotate(-30)">
+          <text x="0" y="45" font-family="Poppins, sans-serif" font-weight="700" font-size="15" letter-spacing="1" fill="rgba(30,58,138,0.10)">${text}</text>
+        </pattern>
+      </defs>
+      <rect x="-50%" y="-50%" width="200%" height="200%" fill="url(#wmPattern)"></rect>
+    </svg>`;
+}
+
+/* ---------------------------- Auth Flow ---------------------------- */
+function switchAuthPane(id) {
+  ["loginPane","setupPane","forgotPane"].forEach(p => document.getElementById(p).classList.toggle("hidden", p !== id));
+}
+function showForgot() { switchAuthPane("forgotPane"); }
+
+async function doSetup() {
+  const bizName = document.getElementById("setupBizName").value.trim();
+  const name = document.getElementById("setupName").value.trim();
+  const email = document.getElementById("setupEmail").value.trim();
+  const password = document.getElementById("setupPassword").value;
+  const errEl = document.getElementById("setupError");
+  errEl.classList.add("hidden");
+  if (!bizName || !name || !email || !password || password.length < 6) {
+    errEl.textContent = "Please fill all fields. Password must be at least 6 characters.";
+    errEl.classList.remove("hidden");
+    return;
+  }
+  const btn = document.getElementById("setupBtn");
+  btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> Creating…`;
+  try {
+    const setupDoc = await db.collection("meta").doc("setup").get();
+    if (setupDoc.exists && setupDoc.data().adminCreated) {
+      errEl.textContent = "An admin account already exists. Please sign in instead.";
+      errEl.classList.remove("hidden");
+      btn.disabled = false; btn.innerHTML = "Create admin account";
+      return;
+    }
+    const cred = await auth.createUserWithEmailAndPassword(email, password);
+    await db.collection("staff").doc(cred.user.uid).set({
+      name, email, role: "Super Admin", active: true, createdAt: FieldValue.serverTimestamp()
+    });
+    await db.collection("settings").doc("company").set({
+      name: bizName, address: "", phone: "", email: email, logoUrl: "", taxRate: 7.5, currency: "₦"
+    }, { merge: true });
+    await db.collection("branches").add({ name: "Main Branch", address: "", phone: "", createdAt: FieldValue.serverTimestamp() });
+    await db.collection("meta").doc("setup").set({ adminCreated: true, createdAt: FieldValue.serverTimestamp() }, { merge: true });
+    toast("Admin account created. Welcome to OGABUY!", "success");
+  } catch (e) {
+    errEl.textContent = e.message || "Setup failed.";
+    errEl.classList.remove("hidden");
+    btn.disabled = false; btn.innerHTML = "Create admin account";
+  }
+}
+
+async function doLogin() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const errEl = document.getElementById("loginError");
+  errEl.classList.add("hidden");
+  if (!email || !password) {
+    errEl.textContent = "Enter your email and password.";
+    errEl.classList.remove("hidden");
+    return;
+  }
+  const btn = document.getElementById("loginBtn");
+  btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> Signing in…`;
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+  } catch (e) {
+    errEl.textContent = "Invalid email or password.";
+    errEl.classList.remove("hidden");
+    btn.disabled = false; btn.innerHTML = "Sign in";
+  }
+}
+
+async function doForgot() {
+  const email = document.getElementById("forgotEmail").value.trim();
+  const msgEl = document.getElementById("forgotMsg");
+  if (!email) return;
+  try {
+    await auth.sendPasswordResetEmail(email);
+    msgEl.textContent = "Reset link sent — check the inbox.";
+    msgEl.className = "text-xs font-medium text-green-600";
+    msgEl.classList.remove("hidden");
+  } catch (e) {
+    msgEl.textContent = "Could not send reset link. Check the email address.";
+    msgEl.className = "text-xs font-medium text-red-600";
+    msgEl.classList.remove("hidden");
+  }
+}
+
+function doLogout() { auth.signOut(); }
+
+auth.onAuthStateChanged(async (user) => {
+  document.getElementById("bootScreen").classList.add("hidden");
+  detachListeners();
+  if (user) {
+    STATE.user = user;
+    const staffDoc = await db.collection("staff").doc(user.uid).get();
+    if (!staffDoc.exists) {
+      toast("No staff profile found for this account. Contact your administrator.", "error");
+      auth.signOut();
+      return;
+    }
+    STATE.staff = staffDoc.data();
+    if (STATE.staff.active === false) {
+      toast("Your account has been deactivated. Contact your administrator.", "error");
+      auth.signOut();
+      return;
+    }
+    STATE.currentBranchId = STATE.staff.role === "Super Admin" ? "ALL" : (STATE.staff.branchId || null);
+    document.getElementById("authScreen").classList.add("hidden");
+    document.getElementById("appShell").classList.remove("hidden");
+    buildNav();
+    renderBranchSwitcher();
+    document.getElementById("userNameLbl").textContent = STATE.staff.name || STATE.user.email;
+    document.getElementById("userRoleLbl").textContent = STATE.staff.role || "Staff";
+    document.getElementById("userAvatar").textContent = (STATE.staff.name || STATE.user.email || "?").charAt(0).toUpperCase();
+    attachListeners();
+    setPage("dashboard");
+  } else {
+    STATE.user = null; STATE.staff = null;
+    document.getElementById("appShell").classList.add("hidden");
+    document.getElementById("authScreen").classList.remove("hidden");
+    switchAuthPane("loginPane");
+  }
+});
+
+/* ---------------------------- Navigation ---------------------------- */
+function buildNav() {
+  const allowed = ROLE_NAV[STATE.staff.role] || ["dashboard"];
+  const nav = document.getElementById("navList");
+  nav.innerHTML = NAV_ITEMS.filter(i => allowed.includes(i.key)).map(i => `
+    <div class="nav-link" data-nav="${i.key}" onclick="setPage('${i.key}')">${i.icon}<span>${i.label}</span></div>
+  `).join("");
+}
+
+function renderBranchSwitcher() {
+  const host = document.getElementById("branchSwitcherHost");
+  if (!host) return;
+  if (STATE.staff.role === "Super Admin") {
+    host.innerHTML = `
+      <select class="input w-auto text-xs py-1.5" onchange="setActiveBranch(this.value)">
+        <option value="ALL" ${STATE.currentBranchId==='ALL'?'selected':''}>All branches (view only)</option>
+        ${STATE.branches.map(b => `<option value="${b.id}" ${STATE.currentBranchId===b.id?'selected':''}>${esc(b.name)}</option>`).join("")}
+      </select>`;
+  } else {
+    host.innerHTML = `<span class="badge bg-blue-50 text-blue-700">${esc(branchName(STATE.staff.branchId))}</span>`;
+  }
+}
+function setActiveBranch(id) {
+  STATE.currentBranchId = id;
+  renderBranchSwitcher();
+  refreshCurrentPage();
+  if (STATE.currentPage === "dashboard") renderDashboard();
+}
+
+function toggleSidebar(force) {
+  const sb = document.getElementById("sidebar");
+  const ov = document.getElementById("sidebarOverlay");
+  const show = force !== undefined ? force : sb.classList.contains("-translate-x-full");
+  sb.classList.toggle("-translate-x-full", !show);
+  ov.classList.toggle("hidden", !show);
+}
+
+function setPage(key) {
+  const allowed = ROLE_NAV[STATE.staff.role] || ["dashboard"];
+  if (!allowed.includes(key)) { toast("You don't have access to that section.", "warn"); return; }
+  STATE.currentPage = key;
+  document.querySelectorAll(".nav-link").forEach(el => el.classList.toggle("active", el.dataset.nav === key));
+  document.getElementById("pageTitle").textContent = PAGE_TITLES[key][0];
+  document.getElementById("pageSubtitle").textContent = PAGE_TITLES[key][1];
+  toggleSidebar(false);
+  const renderers = {
+    dashboard: renderDashboard, products: renderProducts, pos: renderPOS, salesRecords: renderSalesRecords,
+    customers: renderCustomers, suppliers: renderSuppliers, purchases: renderPurchases,
+    reports: renderReports, staff: renderStaff, branches: renderBranches, settings: renderSettings,
+  };
+  (renderers[key] || renderDashboard)();
+}
+
+function toggleNotifPanel() {
+  document.getElementById("notifPanel").classList.toggle("hidden");
+  renderNotifications();
+}
+
+/* ---------------------------- Data Listeners ---------------------------- */
+function detachListeners() { STATE.unsub.forEach(fn => { try { fn(); } catch(e){} }); STATE.unsub = []; }
+
+function attachListeners() {
+  const isSA = STATE.staff.role === "Super Admin";
+  const myBranch = STATE.staff.branchId;
+  if (!isSA && !myBranch) {
+    toast("Your account isn't assigned to a branch yet — ask your admin to assign you one in Staff & Roles.", "warn");
+  }
+  // Non-admins must query with an explicit branchId filter — Firestore rejects an
+  // entire unfiltered list query if it can't prove every result would pass the
+  // security rule, so this keeps their queries valid under the stricter rules.
+  // If they have no branch yet, use a value that can never match so the query
+  // stays valid (rather than crashing on an undefined filter value).
+  const branchFilterValue = myBranch || "__unassigned__";
+  const scoped = (col, orderField, orderDir, lim) => {
+    let q = isSA ? db.collection(col) : db.collection(col).where("branchId", "==", branchFilterValue);
+    if (orderField) q = q.orderBy(orderField, orderDir || "asc");
+    if (lim) q = q.limit(lim);
+    return q;
+  };
+  STATE.unsub.push(db.collection("branches").orderBy("name").onSnapshot(snap => {
+    STATE.branches = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderBranchSwitcher();
+    if (STATE.currentPage === "branches") refreshCurrentPage();
+  }, err => console.error(err)));
+  STATE.unsub.push(db.collection("settings").doc("company").onSnapshot(doc => {
+    if (doc.exists) STATE.company = Object.assign({}, STATE.company, doc.data());
+    if (["dashboard","settings","pos"].includes(STATE.currentPage)) refreshCurrentPage();
+  }));
+  STATE.unsub.push(scoped("products", "name").onSnapshot(snap => {
+    STATE.products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (["dashboard","products","pos","reports"].includes(STATE.currentPage)) refreshCurrentPage();
+  }, err => console.error(err)));
+  STATE.unsub.push(scoped("customers", "name").onSnapshot(snap => {
+    STATE.customers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (["dashboard","customers","pos","reports"].includes(STATE.currentPage)) refreshCurrentPage();
+  }, err => console.error(err)));
+  STATE.unsub.push(scoped("suppliers", "name").onSnapshot(snap => {
+    STATE.suppliers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (["suppliers","purchases","dashboard"].includes(STATE.currentPage)) refreshCurrentPage();
+  }, err => console.error(err)));
+  STATE.unsub.push(scoped("sales", "createdAt", "desc", 1000).onSnapshot(snap => {
+    STATE.sales = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (["dashboard","reports","customers","salesRecords"].includes(STATE.currentPage)) refreshCurrentPage();
+  }, err => console.error(err)));
+  STATE.unsub.push(scoped("purchases", "createdAt", "desc", 500).onSnapshot(snap => {
+    STATE.purchases = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (["purchases","reports","dashboard"].includes(STATE.currentPage)) refreshCurrentPage();
+  }, err => console.error(err)));
+  STATE.unsub.push((isSA ? db.collection("staff") : db.collection("staff").where("branchId", "==", branchFilterValue)).onSnapshot(snap => {
+    STATE.staffList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (STATE.currentPage === "staff") refreshCurrentPage();
+    const me = snap.docs.find(d => d.id === STATE.user.uid);
+    if (me) STATE.staff = me.data();
+  }, err => console.error(err)));
+  STATE.unsub.push(scoped("stockMoves", "date", "desc", 500).onSnapshot(snap => {
+    STATE.stockMoves = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (["dashboard","reports"].includes(STATE.currentPage)) refreshCurrentPage();
+  }, err => console.error(err)));
+}
+
+function refreshCurrentPage() {
+  const renderers = {
+    dashboard: renderDashboard, products: renderProducts, pos: renderPOSDataOnly, salesRecords: renderSalesRecords,
+    customers: renderCustomers, suppliers: renderSuppliers, purchases: renderPurchases,
+    reports: renderReports, staff: renderStaff, branches: renderBranches, settings: null,
+  };
+  const fn = renderers[STATE.currentPage];
+  if (fn) fn();
+}
+
+function renderNotifications() {
+  const prods = bScope(STATE.products);
+  const low = prods.filter(p => Number(p.quantity) <= lowStockThreshold(p) && Number(p.quantity) > 0);
+  const out = prods.filter(p => Number(p.quantity) <= 0);
+  const list = document.getElementById("notifList");
+  const dot = document.getElementById("notifDot");
+  const items = [
+    ...out.slice(0,5).map(p => ({ icon: "🔴", text: `${p.name} is out of stock` })),
+    ...low.slice(0,5).map(p => ({ icon: "🟠", text: `${p.name} is low on stock (${p.quantity} left)` })),
+  ];
+  dot.classList.toggle("hidden", items.length === 0);
+  list.innerHTML = items.length ? items.map(i => `<div class="p-3 text-sm flex gap-2"><span>${i.icon}</span><span>${esc(i.text)}</span></div>`).join("") : `<div class="p-4 text-sm text-slate-400 text-center">You're all caught up.</div>`;
+}
+
+/* ---------------------------- Dashboard ---------------------------- */
+function salesInRange(start, end) {
+  return bScope(STATE.sales).filter(s => {
+    const t = s.createdAt && s.createdAt.toDate ? s.createdAt.toDate() : new Date(s.createdAt);
+    return t >= start && t <= end;
+  });
+}
+function startOfDay(d){ const x=new Date(d); x.setHours(0,0,0,0); return x; }
+function startOfWeek(d){ const x=startOfDay(d); const day=x.getDay(); x.setDate(x.getDate()-day); return x; }
+function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+
+function renderDashboard() {
+  const now = new Date();
+  const todaySales = salesInRange(startOfDay(now), now);
+  const weekSales = salesInRange(startOfWeek(now), now);
+  const monthSales = salesInRange(startOfMonth(now), now);
+  const allSales = bScope(STATE.sales);
+  const sum = arr => arr.reduce((a,s) => a + (Number(s.total)||0), 0);
+  const totalRevenue = sum(allSales);
+  const scopedProducts = bScope(STATE.products);
+  const lowStock = scopedProducts.filter(p => Number(p.quantity) <= lowStockThreshold(p) && Number(p.quantity) > 0);
+  const outStock = scopedProducts.filter(p => Number(p.quantity) <= 0);
+
+  const salesByProduct = {};
+  allSales.forEach(s => (s.items||[]).forEach(it => {
+    salesByProduct[it.name] = (salesByProduct[it.name]||0) + Number(it.qty||0);
+  }));
+  const topProducts = Object.entries(salesByProduct).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  const last7 = [...Array(7)].map((_,i) => {
+    const d = new Date(); d.setDate(d.getDate() - (6-i));
+    const s = startOfDay(d); const e = new Date(s); e.setHours(23,59,59,999);
+    return { label: d.toLocaleDateString(undefined,{weekday:'short'}), total: sum(salesInRange(s,e)) };
+  });
+
+  document.getElementById("pageContainer").innerHTML = `
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      ${statCard("Products in stock", scopedProducts.length.toLocaleString(), "blue", iconBox)}
+      ${statCard("Sales today", todaySales.length.toLocaleString(), "orange", iconCart, fmtMoney(sum(todaySales)))}
+      ${statCard("Sales this month", monthSales.length.toLocaleString(), "green", iconCalendar, fmtMoney(sum(monthSales)))}
+      ${statCard("Total revenue (all-time)", fmtMoney(totalRevenue), "blue", iconMoney)}
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      ${miniStat("This week", fmtMoney(sum(weekSales)), weekSales.length + " sales")}
+      ${miniStat("Low stock items", lowStock.length, "needs reordering", lowStock.length ? "amber" : null)}
+      ${miniStat("Out of stock", outStock.length, "unavailable to sell", outStock.length ? "red" : null)}
+      ${miniStat("Customers", bScope(STATE.customers).length, "in database")}
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div class="lg:col-span-2 card p-4 sm:p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-display font-semibold text-sm">Sales — last 7 days</h3>
+        </div>
+        <canvas id="salesChart" height="110"></canvas>
+      </div>
+      <div class="card p-4 sm:p-5">
+        <h3 class="font-display font-semibold text-sm mb-3">Top-selling products</h3>
+        <div class="space-y-3">
+          ${topProducts.length ? topProducts.map(([name,qty],i) => `
+            <div class="flex items-center gap-3">
+              <div class="w-6 h-6 rounded-md bg-blue-50 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">${i+1}</div>
+              <div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">${esc(name)}</p></div>
+              <span class="badge bg-orange-100 text-orange-700">${qty} sold</span>
+            </div>`).join("") : `<p class="text-sm text-slate-400">No sales recorded yet.</p>`}
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
+      <div class="card p-4 sm:p-5">
+        <h3 class="font-display font-semibold text-sm mb-3">Recent sales activity</h3>
+        <div class="overflow-x-auto -mx-1"><table class="tbl">
+          <thead><tr><th>Receipt</th><th>Customer</th><th>Total</th><th>Time</th></tr></thead>
+          <tbody>${allSales.slice(0,6).map(s => `
+            <tr><td class="font-medium">${esc(s.receiptNo)}</td><td>${esc(s.customerName||"Walk-in")}</td><td>${fmtMoney(s.total)}</td><td class="text-slate-400">${fmtDateTime(s.createdAt)}</td></tr>
+          `).join("") || `<tr><td colspan="4" class="text-slate-400 text-center py-6">No sales yet</td></tr>`}</tbody>
+        </table></div>
+      </div>
+      <div class="card p-4 sm:p-5">
+        <h3 class="font-display font-semibold text-sm mb-3">Stock alerts</h3>
+        <div class="space-y-2 max-h-64 overflow-y-auto">
+          ${[...outStock.map(p=>({p,level:'out'})), ...lowStock.map(p=>({p,level:'low'}))].slice(0,8).map(({p,level}) => `
+            <div class="flex items-center justify-between p-2.5 rounded-lg ${level==='out'?'bg-red-50':'bg-amber-50'}">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="dot" style="background:${level==='out'?'var(--red-600)':'var(--amber-600)'}"></span>
+                <span class="text-sm font-medium truncate">${esc(p.name)}</span>
+              </div>
+              <span class="text-xs font-semibold ${level==='out'?'text-red-600':'text-amber-700'}">${level==='out'?'Out of stock':p.quantity+' left'}</span>
+            </div>`).join("") || `<p class="text-sm text-slate-400">All products are well stocked.</p>`}
+        </div>
+      </div>
+    </div>
+  `;
+  const ctx = document.getElementById("salesChart");
+  if (ctx) {
+    if (window._salesChart) window._salesChart.destroy();
+    window._salesChart = new Chart(ctx, {
+      type: "bar",
+      data: { labels: last7.map(d=>d.label), datasets: [{ label: "Revenue", data: last7.map(d=>d.total), backgroundColor: "#2452C9", borderRadius: 6, maxBarThickness: 34 }] },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => STATE.company.currency + (v/1000)+'k' } } } }
+    });
+  }
+}
+function iconBox(){return `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m16.5 0H3.75m16.5 0l-1.5-3.75h-13.5L3.75 7.5"/></svg>`}
+function iconCart(){return `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.94-4.693 2.447-7.152.075-.364-.148-.75-.53-.75H5.25M7.5 14.25L5.106 5.272M7.5 14.25L6.75 9M6.75 9h13.5"/></svg>`}
+function iconCalendar(){return `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>`}
+function iconMoney(){return `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`}
+
+function statCard(label, value, color, icon, sub) {
+  const colors = { blue: ["#EFF3FF","#1E3A8A"], orange: ["#FFEDD9","#EA580C"], green: ["#DCFCE7","#16A34A"] };
+  const [bg, fg] = colors[color] || colors.blue;
+  return `<div class="stat-card">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-medium text-slate-500">${esc(label)}</span>
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:${bg};color:${fg}">${icon()}</div>
+    </div>
+    <p class="font-display text-xl sm:text-2xl font-bold text-slate-800">${value}</p>
+    ${sub ? `<p class="text-xs text-slate-400 mt-0.5">${sub}</p>` : ""}
+  </div>`;
+}
+function miniStat(label, value, sub, alert) {
+  const color = alert === "amber" ? "text-amber-600" : alert === "red" ? "text-red-600" : "text-slate-800";
+  return `<div class="stat-card py-3">
+    <p class="text-xs font-medium text-slate-500 mb-1">${esc(label)}</p>
+    <p class="font-display text-lg font-bold ${color}">${value}</p>
+    <p class="text-[11px] text-slate-400">${esc(sub)}</p>
+  </div>`;
+}
+
+/* ---------------------------- Products ---------------------------- */
+let productFilter = { q: "", category: "" };
+function renderProducts() {
+  const scoped = bScope(STATE.products);
+  const cats = [...new Set(scoped.map(p => p.category).filter(Boolean))];
+  const rows = scoped.filter(p => {
+    const matchQ = !productFilter.q || (p.name||"").toLowerCase().includes(productFilter.q) || (p.sku||"").toLowerCase().includes(productFilter.q);
+    const matchC = !productFilter.category || p.category === productFilter.category;
+    return matchQ && matchC;
+  });
+  const showBranchCol = isAggregateView();
+  document.getElementById("pageContainer").innerHTML = `
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+      <div class="flex-1 flex gap-2">
+        <input id="prodSearch" class="input max-w-xs" placeholder="Search name or SKU/barcode…" value="${esc(productFilter.q)}" oninput="productFilter.q=this.value.toLowerCase();renderProducts()">
+        <select class="input max-w-[160px]" onchange="productFilter.category=this.value;renderProducts()">
+          <option value="">All categories</option>
+          ${cats.map(c => `<option value="${esc(c)}" ${productFilter.category===c?'selected':''}>${esc(c)}</option>`).join("")}
+        </select>
+      </div>
+      ${(canManage()||isStoreKeeperOrAbove()) && !isAggregateView() ? `<button class="btn btn-primary" onclick="openProductModal()">+ Add product</button>` : ""}
+      ${isAggregateView() ? `<p class="text-xs text-slate-400">Pick a specific branch above to add or edit products.</p>` : ""}
+    </div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto"><table class="tbl">
+        <thead><tr><th></th><th>Product</th><th>SKU</th><th>Category</th>${showBranchCol?'<th>Branch</th>':''}<th>Cost</th><th>Price</th><th>Stock</th><th>Supplier</th><th></th></tr></thead>
+        <tbody>${rows.map(p => productRow(p, showBranchCol)).join("") || `<tr><td colspan="9" class="text-center text-slate-400 py-10">No products found. Add your first product to get started.</td></tr>`}</tbody>
+      </table></div>
+    </div>
+  `;
+}
+function productRow(p, showBranchCol) {
+  const qty = Number(p.quantity)||0;
+  const status = qty <= 0 ? `<span class="badge bg-red-100 text-red-700">Out of stock</span>` : qty <= lowStockThreshold(p) ? `<span class="badge bg-amber-100 text-amber-700">Low: ${qty}</span>` : `<span class="badge bg-green-100 text-green-700">${qty} in stock</span>`;
+  return `<tr>
+    <td>${productThumb(p)}</td>
+    <td class="font-medium">${esc(p.name)}</td>
+    <td class="text-slate-500">${esc(p.sku||"—")}</td>
+    <td>${p.category?`<span class="badge bg-blue-50 text-blue-700">${esc(p.category)}</span>`:"—"}</td>
+    ${showBranchCol ? `<td class="text-slate-500">${esc(branchName(p.branchId))}</td>` : ""}
+    <td>${fmtMoney(p.costPrice)}</td>
+    <td class="font-semibold">${fmtMoney(p.sellingPrice)}</td>
+    <td>${status}</td>
+    <td class="text-slate-500">${esc(p.supplier||"—")}</td>
+    <td class="text-right whitespace-nowrap">
+      <button class="btn btn-outline btn-sm" onclick="openStockAdjustModal('${p.id}')">Adjust</button>
+      <button class="btn btn-outline btn-sm" onclick="openProductModal('${p.id}')">Edit</button>
+      ${canManage() ? `<button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Delete</button>` : ""}
+    </td>
+  </tr>`;
+}
+
+function openProductModal(id) {
+  const p = id ? STATE.products.find(x => x.id === id) : null;
+  openModal(`
+    <div class="modal-box">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-display font-semibold">${p ? "Edit product" : "Add product"}</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700">✕</button>
+      </div>
+      <div class="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="col-span-2"><label class="lbl">Product name *</label><input id="pf_name" class="input" value="${esc(p?.name)}"></div>
+          <div><label class="lbl">Category</label><input id="pf_category" class="input" value="${esc(p?.category)}" placeholder="e.g. Beverages"></div>
+          <div><label class="lbl">SKU / Barcode</label><input id="pf_sku" class="input" value="${esc(p?.sku)}"></div>
+          <div><label class="lbl">Cost price *</label><input id="pf_cost" type="number" step="0.01" class="input" value="${p?.costPrice ?? ''}"></div>
+          <div><label class="lbl">Selling price *</label><input id="pf_price" type="number" step="0.01" class="input" value="${p?.sellingPrice ?? ''}"></div>
+          <div><label class="lbl">Quantity in stock *</label><input id="pf_qty" type="number" class="input" value="${p?.quantity ?? 0}" ${p ? 'disabled' : ''}></div>
+          <div><label class="lbl">Low stock</label><input id="pf_reorder" type="number" class="input" value="${p?.reorderLevel ?? 5}"><p class="text-[11px] text-slate-400 mt-1">You'll get a low-stock warning once quantity falls to this number.</p></div>
+          <div class="col-span-2"><label class="lbl">Supplier</label><input id="pf_supplier" class="input" value="${esc(p?.supplier)}"></div>
+          <div class="col-span-2"><label class="lbl">Product image URL <span class="text-slate-400 font-normal normal-case">(optional — leave blank to use an icon)</span></label><input id="pf_image" class="input" value="${esc(p?.imageUrl)}" placeholder="https://…"></div>
+          <div class="col-span-2">
+            <label class="lbl">Or pick a placeholder icon</label>
+            <input type="hidden" id="pf_iconKey" value="${esc(p?.iconKey || 'box')}">
+            ${iconPickerHtml(p?.iconKey || 'box')}
+          </div>
+          <div class="col-span-2"><label class="lbl">Description</label><textarea id="pf_desc" class="input" rows="2">${esc(p?.description)}</textarea></div>
+        </div>
+        ${p ? `<p class="text-xs text-slate-400">To change stock quantity, use the "Adjust" action from the product list instead — this keeps stock history accurate.</p>` : ""}
+      </div>
+      <div class="p-5 border-t border-slate-100 flex justify-end gap-2">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveProduct(${p ? `'${p.id}'` : 'null'})">${p ? "Save changes" : "Add product"}</button>
+      </div>
+    </div>
+  `);
+}
+
+async function saveProduct(id) {
+  const name = document.getElementById("pf_name").value.trim();
+  const cost = parseFloat(document.getElementById("pf_cost").value);
+  const price = parseFloat(document.getElementById("pf_price").value);
+  const qty = parseInt(document.getElementById("pf_qty").value || "0");
+  if (!name || isNaN(cost) || isNaN(price)) { toast("Please fill in name, cost price and selling price.", "error"); return; }
+  const data = {
+    name, costPrice: cost, sellingPrice: price,
+    category: document.getElementById("pf_category").value.trim(),
+    sku: document.getElementById("pf_sku").value.trim(),
+    reorderLevel: parseInt(document.getElementById("pf_reorder").value || "5"),
+    supplier: document.getElementById("pf_supplier").value.trim(),
+    imageUrl: document.getElementById("pf_image").value.trim(),
+    iconKey: document.getElementById("pf_iconKey").value || "box",
+    description: document.getElementById("pf_desc").value.trim(),
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+  try {
+    if (id) {
+      await db.collection("products").doc(id).update(data);
+      toast("Product updated.", "success");
+    } else {
+      const branchId = requireActiveBranch();
+      if (!branchId) return;
+      data.quantity = qty; data.createdAt = FieldValue.serverTimestamp(); data.branchId = branchId;
+      const ref = await db.collection("products").add(data);
+      if (qty > 0) await logStockMove(ref.id, name, "initial", qty, "Initial stock on product creation");
+      toast("Product added.", "success");
+    }
+    closeModal();
+  } catch (e) { toast(e.message, "error"); }
+}
+
+async function deleteProduct(id) {
+  if (!confirm("Delete this product? This cannot be undone.")) return;
+  await db.collection("products").doc(id).delete();
+  toast("Product deleted.", "success");
+}
+
+function openStockAdjustModal(id) {
+  const p = STATE.products.find(x => x.id === id);
+  if (!p) return;
+  openModal(`
+    <div class="modal-box">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-display font-semibold">Adjust stock — ${esc(p.name)}</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700">✕</button>
+      </div>
+      <div class="p-5 space-y-3">
+        <p class="text-sm text-slate-500">Current stock: <span class="font-semibold text-slate-800">${p.quantity}</span></p>
+        <div>
+          <label class="lbl">Movement type</label>
+          <select id="sa_type" class="input">
+            <option value="restock">Restock / new stock received</option>
+            <option value="adjustment">Manual adjustment (correction)</option>
+            <option value="damaged">Damaged goods (remove)</option>
+            <option value="returned">Customer return (add back)</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl">Quantity</label>
+          <input id="sa_qty" type="number" class="input" placeholder="e.g. 20">
+          <p class="text-xs text-slate-400 mt-1">For restock/return, this is added. For damaged goods, this is removed. For manual adjustment, this sets the exact new stock count.</p>
+        </div>
+        <div><label class="lbl">Note</label><input id="sa_note" class="input" placeholder="Optional note"></div>
+      </div>
+      <div class="p-5 border-t border-slate-100 flex justify-end gap-2">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="applyStockAdjust('${id}')">Apply</button>
+      </div>
+    </div>
+  `);
+}
+
+async function applyStockAdjust(id) {
+  const type = document.getElementById("sa_type").value;
+  const qty = parseInt(document.getElementById("sa_qty").value);
+  const note = document.getElementById("sa_note").value.trim();
+  if (isNaN(qty) || qty < 0) { toast("Enter a valid quantity.", "error"); return; }
+  const ref = db.collection("products").doc(id);
+  try {
+    await db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      const cur = Number(doc.data().quantity)||0;
+      let next = cur;
+      if (type === "restock" || type === "returned") next = cur + qty;
+      else if (type === "damaged") next = Math.max(0, cur - qty);
+      else if (type === "adjustment") next = qty;
+      tx.update(ref, { quantity: next, updatedAt: FieldValue.serverTimestamp() });
+    });
+    const p = STATE.products.find(x => x.id === id);
+    await logStockMove(id, p?.name, type, qty, note);
+    toast("Stock updated.", "success");
+    closeModal();
+  } catch (e) { toast(e.message, "error"); }
+}
+
+async function logStockMove(productId, productName, type, qty, note) {
+  await db.collection("stockMoves").add({
+    productId, productName: productName||"", type, qty,
+    note: note||"", user: STATE.staff?.name||STATE.user.email, date: FieldValue.serverTimestamp()
+  });
+}
+
+/* ---------------------------- POS ---------------------------- */
+let posSearch = "";
+let posSelectedCustomer = null;
+let posDiscount = 0;
+let posPayment = "Cash";
+let posNewCustomerName = "";
+let posNewCustomerPhone = "";
+let posNewCustomerAddress = "";
+function togglePosNewCustomer() {
+  const box = document.getElementById("posNewCustomerBox");
+  if (box) box.classList.toggle("hidden", !!posSelectedCustomer);
+}
+
+function renderPOS() {
+  document.getElementById("pageContainer").innerHTML = `
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
+      <div class="xl:col-span-2">
+        <div class="card p-4 mb-4">
+          <input id="posSearchInput" class="input" placeholder="Search product by name, SKU or barcode…" oninput="posSearch=this.value.toLowerCase();renderPOSGrid()">
+        </div>
+        <div id="posGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+      </div>
+      <div class="card p-4 sm:p-5 h-fit xl:sticky xl:top-20">
+        <h3 class="font-display font-semibold text-sm mb-3">Current sale</h3>
+        <div class="mb-3">
+          <label class="lbl">Customer</label>
+          <select id="posCustomer" class="input" onchange="posSelectedCustomer=this.value||null;togglePosNewCustomer()">
+            <option value="">Walk-in customer</option>
+            ${bScope(STATE.customers).map(c => `<option value="${c.id}" ${posSelectedCustomer===c.id?'selected':''}>${esc(c.name)} — ${esc(c.phone||"")}</option>`).join("")}
+          </select>
+        </div>
+        <div id="posNewCustomerBox" class="mb-3 ${posSelectedCustomer ? 'hidden' : ''}">
+          <p class="text-xs text-slate-500 mb-1.5">Walk-in? Add their details to save them as a customer automatically:</p>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <input id="posNewCustName" class="input" placeholder="Customer name" value="${esc(posNewCustomerName)}" oninput="posNewCustomerName=this.value">
+            <input id="posNewCustPhone" class="input" placeholder="Phone number" value="${esc(posNewCustomerPhone)}" oninput="posNewCustomerPhone=this.value">
+          </div>
+          <input id="posNewCustAddress" class="input" placeholder="Address (optional)" value="${esc(posNewCustomerAddress)}" oninput="posNewCustomerAddress=this.value">
+        </div>
+        <div id="posCartList" class="space-y-2 max-h-64 overflow-y-auto mb-3"></div>
+        <div class="border-t border-slate-100 pt-3 space-y-2">
+          <div class="flex items-center justify-between text-sm"><span class="text-slate-500">Subtotal</span><span id="posSubtotal" class="font-medium">${fmtMoney(0)}</span></div>
+          <div class="flex items-center justify-between text-sm gap-2">
+            <span class="text-slate-500">Discount</span>
+            <input id="posDiscountInput" type="number" min="0" value="${posDiscount}" class="input w-24 text-right" oninput="posDiscount=parseFloat(this.value)||0;renderPOSCart()">
+          </div>
+          <div class="flex items-center justify-between text-sm"><span class="text-slate-500">VAT/Tax (${STATE.company.taxRate||0}%)</span><span id="posTax" class="font-medium">${fmtMoney(0)}</span></div>
+          <div class="flex items-center justify-between text-base font-bold pt-1 border-t border-slate-100"><span>Total</span><span id="posTotal" class="text-blue-700">${fmtMoney(0)}</span></div>
+        </div>
+        <div class="mt-3">
+          <label class="lbl">Payment method</label>
+          <select id="posPaymentMethod" class="input" onchange="posPayment=this.value">
+            ${["Cash","Bank Transfer","POS","Card Payment","Mobile Money","Credit Sale"].map(m=>`<option ${posPayment===m?'selected':''}>${m}</option>`).join("")}
+          </select>
+        </div>
+        <button class="btn btn-orange w-full mt-4 py-2.5" onclick="completeSale()">Complete sale</button>
+        <button class="btn btn-outline w-full mt-2" onclick="STATE.cart=[];renderPOSCart()">Clear cart</button>
+      </div>
+    </div>
+  `;
+  renderPOSGrid();
+  renderPOSCart();
+}
+function renderPOSDataOnly(){ if (STATE.currentPage==='pos'){ renderPOSGrid(); renderPOSCart(); const sel=document.getElementById('posCustomer'); if(sel){ sel.innerHTML = `<option value="">Walk-in customer</option>` + bScope(STATE.customers).map(c => `<option value="${c.id}" ${posSelectedCustomer===c.id?'selected':''}>${esc(c.name)} — ${esc(c.phone||"")}</option>`).join(""); } } }
+
+function renderPOSGrid() {
+  const grid = document.getElementById("posGrid");
+  if (!grid) return;
+  if (isAggregateView()) {
+    grid.innerHTML = `<div class="col-span-full text-center py-10 text-sm text-slate-400">Select a specific branch from the top bar to ring up a sale.</div>`;
+    return;
+  }
+  const items = bScope(STATE.products).filter(p => !posSearch || (p.name||"").toLowerCase().includes(posSearch) || (p.sku||"").toLowerCase().includes(posSearch));
+  grid.innerHTML = items.map(p => `
+    <button onclick="addToCart('${p.id}')" ${Number(p.quantity)<=0?'disabled':''} class="card p-3 text-left hover:shadow-md hover:border-blue-300 transition disabled:opacity-40 disabled:cursor-not-allowed">
+      ${p.imageUrl ? `<img src="${esc(p.imageUrl)}" class="w-full h-20 object-cover rounded-lg mb-2">` : `<div class="w-full h-20 rounded-lg bg-slate-100 flex items-center justify-center text-3xl mb-2">${p.iconKey ? iconEmoji(p.iconKey) : esc((p.name||"?").charAt(0))}</div>`}
+      <p class="text-xs font-semibold truncate">${esc(p.name)}</p>
+      <p class="text-xs text-blue-700 font-bold">${fmtMoney(p.sellingPrice)}</p>
+      <p class="text-[10px] text-slate-400">${Number(p.quantity)<=0 ? 'Out of stock' : p.quantity+' in stock'}</p>
+    </button>
+  `).join("") || `<p class="text-sm text-slate-400 col-span-full text-center py-10">No products match your search.</p>`;
+}
+
+function addToCart(productId) {
+  const p = STATE.products.find(x => x.id === productId);
+  if (!p || Number(p.quantity) <= 0) return;
+  const line = STATE.cart.find(c => c.productId === productId);
+  if (line) {
+    if (line.qty + 1 > Number(p.quantity)) { toast("Not enough stock available.", "warn"); return; }
+    line.qty++;
+  } else {
+    STATE.cart.push({ productId, name: p.name, price: Number(p.sellingPrice), qty: 1, sku: p.sku||"" });
+  }
+  renderPOSCart();
+}
+function changeCartQty(productId, delta) {
+  const line = STATE.cart.find(c => c.productId === productId);
+  const p = STATE.products.find(x => x.id === productId);
+  if (!line) return;
+  const next = line.qty + delta;
+  if (next <= 0) { STATE.cart = STATE.cart.filter(c => c.productId !== productId); }
+  else if (p && next > Number(p.quantity)) { toast("Not enough stock available.", "warn"); return; }
+  else { line.qty = next; }
+  renderPOSCart();
+}
+function removeFromCart(productId) { STATE.cart = STATE.cart.filter(c => c.productId !== productId); renderPOSCart(); }
+
+function cartTotals() {
+  const subtotal = STATE.cart.reduce((a,c) => a + c.price*c.qty, 0);
+  const discount = Math.min(posDiscount||0, subtotal);
+  const taxable = subtotal - discount;
+  const tax = taxable * ((Number(STATE.company.taxRate)||0)/100);
+  const total = taxable + tax;
+  return { subtotal, discount, tax, total };
+}
+
+function renderPOSCart() {
+  const list = document.getElementById("posCartList");
+  if (!list) return;
+  list.innerHTML = STATE.cart.length ? STATE.cart.map(c => `
+    <div class="flex items-center gap-2">
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-medium truncate">${esc(c.name)}</p>
+        <p class="text-[11px] text-slate-400">${fmtMoney(c.price)} each</p>
+      </div>
+      <div class="flex items-center gap-1">
+        <button class="w-6 h-6 rounded bg-slate-100 text-sm" onclick="changeCartQty('${c.productId}',-1)">−</button>
+        <span class="w-6 text-center text-sm font-semibold">${c.qty}</span>
+        <button class="w-6 h-6 rounded bg-slate-100 text-sm" onclick="changeCartQty('${c.productId}',1)">+</button>
+      </div>
+      <button class="text-red-400 hover:text-red-600 text-xs" onclick="removeFromCart('${c.productId}')">✕</button>
+    </div>
+  `).join("") : `<p class="text-xs text-slate-400 text-center py-6">Cart is empty — tap a product to add it.</p>`;
+  const t = cartTotals();
+  const set = (id,val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set("posSubtotal", fmtMoney(t.subtotal)); set("posTax", fmtMoney(t.tax)); set("posTotal", fmtMoney(t.total));
+}
+
+async function completeSale() {
+  if (!STATE.cart.length) { toast("Cart is empty.", "warn"); return; }
+  const branchId = requireActiveBranch();
+  if (!branchId) return;
+  const t = cartTotals();
+  const customer = posSelectedCustomer ? STATE.customers.find(c => c.id === posSelectedCustomer) : null;
+  const newCustName = !customer ? posNewCustomerName.trim() : "";
+  const newCustPhone = !customer ? posNewCustomerPhone.trim() : "";
+  const newCustAddress = !customer ? posNewCustomerAddress.trim() : "";
+  const receiptNo = genReceiptNo();
+  const saleData = {
+    receiptNo, branchId, items: STATE.cart.map(c => ({ productId: c.productId, name: c.name, sku: c.sku, price: c.price, qty: c.qty, total: c.price*c.qty })),
+    subtotal: t.subtotal, discount: t.discount, tax: t.tax, total: t.total,
+    paymentMethod: posPayment, customerId: customer?.id || null, customerName: customer?.name || newCustName || "Walk-in",
+    customerPhone: customer?.phone || newCustPhone || "", customerAddress: customer?.address || newCustAddress || "",
+    cashier: STATE.staff?.name || STATE.user.email, createdAt: FieldValue.serverTimestamp(),
+  };
+  try {
+    const batch = db.batch();
+    const saleRef = db.collection("sales").doc();
+    let newCustRef = null;
+    if (newCustName) {
+      newCustRef = db.collection("customers").doc();
+      batch.set(newCustRef, {
+        name: newCustName, phone: newCustPhone, email: "", address: newCustAddress, branchId,
+        totalSpent: t.total, purchaseCount: 1, outstandingBalance: 0,
+        lastPurchaseAt: FieldValue.serverTimestamp(), createdAt: FieldValue.serverTimestamp(),
+      });
+      saleData.customerId = newCustRef.id;
+    }
+    batch.set(saleRef, saleData);
+    STATE.cart.forEach(c => {
+      const pRef = db.collection("products").doc(c.productId);
+      const p = STATE.products.find(x => x.id === c.productId);
+      batch.update(pRef, { quantity: Math.max(0, (Number(p?.quantity)||0) - c.qty), updatedAt: FieldValue.serverTimestamp() });
+    });
+    if (customer) {
+      const cRef = db.collection("customers").doc(customer.id);
+      batch.update(cRef, { totalSpent: FieldValue.increment(t.total), purchaseCount: FieldValue.increment(1), lastPurchaseAt: FieldValue.serverTimestamp() });
+    }
+    await batch.commit();
+    STATE.cart.forEach(c => logStockMove(c.productId, c.name, "sale", c.qty, "Sale " + receiptNo));
+    if (newCustName) toast(newCustName + " was saved to your customer list.", "success");
+    toast("Sale completed — " + receiptNo, "success");
+    showReceipt({ ...saleData, createdAt: new Date() });
+    STATE.cart = []; posDiscount = 0; posSelectedCustomer = null; posNewCustomerName = ""; posNewCustomerPhone = ""; posNewCustomerAddress = "";
+    const custSel = document.getElementById("posCustomer"); if (custSel) custSel.value = "";
+    const ncName = document.getElementById("posNewCustName"); if (ncName) ncName.value = "";
+    const ncPhone = document.getElementById("posNewCustPhone"); if (ncPhone) ncPhone.value = "";
+    const ncAddress = document.getElementById("posNewCustAddress"); if (ncAddress) ncAddress.value = "";
+    togglePosNewCustomer();
+    renderPOSCart();
+  } catch (e) { toast(e.message, "error"); }
+}
+
+/* ---------------------------- Sales Records ---------------------------- */
+let salesRecFilter = { q: "", from: "", to: "", payment: "", cashier: "" };
+function quickSalesRange(kind) {
+  const now = new Date();
+  let from, to = now;
+  if (kind === "today") from = startOfDay(now);
+  else if (kind === "week") from = startOfWeek(now);
+  else if (kind === "month") from = startOfMonth(now);
+  else { salesRecFilter.from = ""; salesRecFilter.to = ""; renderSalesRecords(); return; }
+  salesRecFilter.from = from.toISOString().slice(0,10);
+  salesRecFilter.to = now.toISOString().slice(0,10);
+  renderSalesRecords();
+}
+function filteredSalesRecords() {
+  const q = salesRecFilter.q.toLowerCase();
+  const from = salesRecFilter.from ? new Date(salesRecFilter.from + "T00:00:00") : null;
+  const to = salesRecFilter.to ? new Date(salesRecFilter.to + "T23:59:59") : null;
+  return bScope(STATE.sales).filter(s => {
+    const t = s.createdAt && s.createdAt.toDate ? s.createdAt.toDate() : new Date(s.createdAt);
+    if (from && t < from) return false;
+    if (to && t > to) return false;
+    if (salesRecFilter.payment && s.paymentMethod !== salesRecFilter.payment) return false;
+    if (salesRecFilter.cashier && s.cashier !== salesRecFilter.cashier) return false;
+    if (q && !((s.receiptNo||"").toLowerCase().includes(q) || (s.customerName||"").toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+function renderSalesRecords() {
+  const rows = filteredSalesRecords();
+  const cashiers = [...new Set(bScope(STATE.sales).map(s => s.cashier).filter(Boolean))];
+  const total = rows.reduce((a,s) => a + (Number(s.total)||0), 0);
+  const showBranchCol = isAggregateView();
+  document.getElementById("pageContainer").innerHTML = `
+    <div class="card p-4 mb-4">
+      <div class="flex flex-wrap gap-2 mb-3">
+        <button class="btn btn-outline btn-sm" onclick="quickSalesRange('today')">Today</button>
+        <button class="btn btn-outline btn-sm" onclick="quickSalesRange('week')">This week</button>
+        <button class="btn btn-outline btn-sm" onclick="quickSalesRange('month')">This month</button>
+        <button class="btn btn-outline btn-sm" onclick="quickSalesRange('all')">All time</button>
+      </div>
+      <div class="flex flex-wrap gap-2 items-center">
+        <input class="input max-w-xs" placeholder="Search receipt# or customer…" value="${esc(salesRecFilter.q)}" oninput="salesRecFilter.q=this.value;renderSalesRecords()">
+        <input type="date" class="input w-auto" value="${esc(salesRecFilter.from)}" onchange="salesRecFilter.from=this.value;renderSalesRecords()">
+        <span class="text-xs text-slate-400">to</span>
+        <input type="date" class="input w-auto" value="${esc(salesRecFilter.to)}" onchange="salesRecFilter.to=this.value;renderSalesRecords()">
+        <select class="input w-auto" onchange="salesRecFilter.payment=this.value;renderSalesRecords()">
+          <option value="">All payment methods</option>
+          ${["Cash","Bank Transfer","POS","Card Payment","Mobile Money","Credit Sale"].map(m=>`<option ${salesRecFilter.payment===m?'selected':''}>${m}</option>`).join("")}
+        </select>
+        <select class="input w-auto" onchange="salesRecFilter.cashier=this.value;renderSalesRecords()">
+          <option value="">All cashiers</option>
+          ${cashiers.map(c=>`<option ${salesRecFilter.cashier===c?'selected':''}>${esc(c)}</option>`).join("")}
+        </select>
+        <button class="btn btn-outline btn-sm ml-auto" onclick="csvDownload('sales-records.csv',[['Receipt#','Date','Customer','Cashier','Payment','Total'],...filteredSalesRecords().map(s=>[s.receiptNo,fmtDateTime(s.createdAt),s.customerName,s.cashier,s.paymentMethod,s.total])])">Export CSV</button>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <p class="text-sm text-slate-500">${rows.length} sale(s) found &middot; check two or more to merge them onto one receipt</p>
+      <div class="flex items-center gap-3">
+        <p class="text-sm font-semibold">Total: ${fmtMoney(total)}</p>
+        <button class="btn btn-orange btn-sm" onclick="combineSelectedSales()">Combine &amp; print selected</button>
+      </div>
+    </div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto"><table class="tbl">
+        <thead><tr><th></th><th>Receipt#</th><th>Date &amp; time</th><th>Customer</th>${showBranchCol?'<th>Branch</th>':''}<th>Cashier</th><th>Payment</th><th>Items</th><th>Total</th><th></th></tr></thead>
+        <tbody>${rows.map(s => `
+          <tr>
+            <td><input type="checkbox" class="salesRecCheck" value="${s.id}" style="width:16px;height:16px"></td>
+            <td class="font-medium">${esc(s.receiptNo)}</td>
+            <td class="text-slate-500">${fmtDateTime(s.createdAt)}</td>
+            <td>${esc(s.customerName||"Walk-in")}</td>
+            ${showBranchCol ? `<td class="text-slate-500">${esc(branchName(s.branchId))}</td>` : ""}
+            <td>${esc(s.cashier||"—")}</td>
+            <td><span class="badge bg-blue-50 text-blue-700">${esc(s.paymentMethod)}</span></td>
+            <td class="text-slate-500">${(s.items||[]).length} item(s)</td>
+            <td class="font-semibold">${fmtMoney(s.total)}</td>
+            <td class="text-right"><button class="btn btn-outline btn-sm" onclick="viewSaleReceipt('${s.id}')">View / Print</button></td>
+          </tr>`).join("") || `<tr><td colspan="9" class="text-center text-slate-400 py-10">No sales found for this filter.</td></tr>`}</tbody>
+      </table></div>
+    </div>
+  `;
+}
+function viewSaleReceipt(id) {
+  const sale = STATE.sales.find(s => s.id === id);
+  if (!sale) { toast("Sale not found.", "error"); return; }
+  showReceipt(sale);
+}
+function combineSelectedSales() {
+  const ids = [...document.querySelectorAll(".salesRecCheck:checked")].map(c => c.value);
+  if (ids.length < 2) { toast("Check at least two sales to combine them onto one receipt.", "warn"); return; }
+  const chosen = ids.map(id => STATE.sales.find(s => s.id === id)).filter(Boolean);
+  const customerNames = [...new Set(chosen.map(s => s.customerName || "Walk-in"))];
+  const paymentMethods = [...new Set(chosen.map(s => s.paymentMethod))];
+  const combined = {
+    receiptNo: chosen.map(s => s.receiptNo).join(" + "),
+    items: chosen.flatMap(s => s.items || []),
+    subtotal: chosen.reduce((a,s) => a + (Number(s.subtotal)||0), 0),
+    discount: chosen.reduce((a,s) => a + (Number(s.discount)||0), 0),
+    tax: chosen.reduce((a,s) => a + (Number(s.tax)||0), 0),
+    total: chosen.reduce((a,s) => a + (Number(s.total)||0), 0),
+    paymentMethod: paymentMethods.join(" / "),
+    customerName: customerNames.length === 1 ? customerNames[0] : customerNames.join(", "),
+    customerPhone: customerNames.length === 1 ? (chosen[0].customerPhone || "") : "",
+    customerAddress: customerNames.length === 1 ? (chosen[0].customerAddress || "") : "",
+    cashier: STATE.staff?.name || STATE.user.email,
+    createdAt: new Date(),
+  };
+  showReceipt(combined);
+}
+
+/* ---------------------------- Receipt ---------------------------- */
+function showReceipt(sale) {
+  openModal(`
+    <div class="modal-box" style="max-width:420px">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-display font-semibold">Receipt</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700">✕</button>
+      </div>
+      <div class="p-4">
+        <div id="receiptPrintArea" class="p-4 border border-dashed border-slate-300 rounded-lg text-sm" style="position:relative;overflow:hidden">
+          <div class="receipt-watermark" aria-hidden="true">${watermarkSvg()}</div>
+          <div style="position:relative;z-index:1">
+          <div class="text-center mb-3">
+            ${STATE.company.logoUrl ? `<img src="${esc(STATE.company.logoUrl)}" class="h-10 mx-auto mb-1">` : ""}
+            <p class="font-display font-bold text-base">${esc(STATE.company.name||"OGABUY")}</p>
+            <p class="text-[11px] text-slate-500">${esc(STATE.company.address||"")}</p>
+            <p class="text-[11px] text-slate-500">${esc(STATE.company.phone||"")} ${STATE.company.email?(" · "+esc(STATE.company.email)):""}</p>
+          </div>
+          <div class="border-t border-b border-slate-200 py-1.5 my-2 text-[11px] flex justify-between"><span>Receipt#</span><span class="font-semibold">${esc(sale.receiptNo)}</span></div>
+          <div class="text-[11px] space-y-0.5 mb-2">
+            <div class="flex justify-between"><span class="text-slate-500">Date</span><span>${fmtDateTime(sale.createdAt)}</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Cashier</span><span>${esc(sale.cashier)}</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Customer</span><span>${esc(sale.customerName)}</span></div>
+            ${sale.customerPhone ? `<div class="flex justify-between"><span class="text-slate-500">Phone</span><span>${esc(sale.customerPhone)}</span></div>` : ""}
+            ${sale.customerAddress ? `<div class="flex justify-between"><span class="text-slate-500">Address</span><span class="text-right" style="max-width:65%">${esc(sale.customerAddress)}</span></div>` : ""}
+          </div>
+          <table class="w-full text-[11px] mb-2">
+            <thead><tr class="border-b border-slate-200"><th class="text-left py-1">Item</th><th class="text-center py-1">Qty</th><th class="text-right py-1">Amt</th></tr></thead>
+            <tbody>${sale.items.map(i => `<tr><td class="py-0.5">${esc(i.name)}</td><td class="text-center">${i.qty}</td><td class="text-right">${fmtMoney(i.total)}</td></tr>`).join("")}</tbody>
+          </table>
+          <div class="border-t border-slate-200 pt-2 text-[11px] space-y-0.5">
+            <div class="flex justify-between font-bold text-sm pt-1"><span>Total Amount</span><span>${fmtMoney(sale.total)}</span></div>
+            <div class="flex justify-between pt-1"><span>Payment</span><span>${esc(sale.paymentMethod)}</span></div>
+          </div>
+          <div id="receiptQr" class="flex justify-center my-3"></div>
+          <p class="text-center text-[11px] font-semibold text-slate-700">10 Days Warranty from date of purchase</p>
+          <p class="text-center text-[11px] text-slate-500 mt-0.5">Thank you for shopping with us!</p>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 border-t border-slate-100 flex flex-wrap justify-end gap-2">
+        <button class="btn btn-outline" onclick="closeModal()">Close</button>
+        <button class="btn btn-outline" onclick="emailReceipt('${esc(sale.customerName)}')">Email</button>
+        <button id="waShareBtn" class="btn btn-outline" onclick="shareReceiptImage('${esc(sale.receiptNo)}')">WhatsApp</button>
+        <button class="btn btn-primary" onclick="window.print()">Print</button>
+      </div>
+    </div>
+  `);
+  const qrHost = document.getElementById("receiptQr");
+  if (qrHost && window.QRCode) {
+    new QRCode(qrHost, { text: `OGABUY|${sale.receiptNo}|${sale.total}|${new Date(sale.createdAt).toISOString()}`, width: 90, height: 90, colorDark: "#0F172A" });
+  }
+  // Capture the receipt as an image right away, in the background, so the
+  // WhatsApp button can share it instantly (within the same tap) once pressed —
+  // waiting to capture it on click loses the "user gesture" and gets the
+  // share/pop-up silently blocked by the browser.
+  setTimeout(() => prepareReceiptImage(sale.receiptNo), 200);
+}
+function emailReceipt(customerName) {
+  const subject = encodeURIComponent("Your OGABUY Receipt");
+  const body = encodeURIComponent("Thank you for your purchase at " + (STATE.company.name||"OGABUY") + ". Please find your receipt details on the printed/PDF copy.");
+  window.open(`mailto:?subject=${subject}&body=${body}`);
+}
+async function prepareReceiptImage(receiptNo) {
+  window._receiptShareFile = null;
+  window._receiptShareFailed = false;
+  if (window._receiptShareUrl) { URL.revokeObjectURL(window._receiptShareUrl); window._receiptShareUrl = null; }
+  const el = document.getElementById("receiptPrintArea");
+  if (!el || !window.html2canvas) { window._receiptShareFailed = true; return; }
+  const withTimeout = (p, ms) => Promise.race([p, new Promise((_,rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
+  try {
+    await withTimeout(captureReceiptCanvas(el, receiptNo), 8000);
+  } catch (e) {
+    // Most common cause: a logo image hosted somewhere without CORS headers,
+    // which "taints" the canvas and blocks export. Retry once with the logo hidden.
+    console.error("Receipt image capture failed, retrying without logo:", e);
+    const logoImg = el.querySelector("img");
+    const prevDisplay = logoImg ? logoImg.style.display : null;
+    if (logoImg) logoImg.style.display = "none";
+    try {
+      await withTimeout(captureReceiptCanvas(el, receiptNo), 8000);
+    } catch (e2) {
+      console.error("Receipt image capture failed again — falling back to text-only share:", e2);
+      window._receiptShareFailed = true;
+    } finally {
+      if (logoImg) logoImg.style.display = prevDisplay;
+    }
+  }
+}
+function captureReceiptCanvas(el, receiptNo) {
+  // html2canvas has weak/slow support for SVG <pattern> fills, which was
+  // causing the capture to hang. So we hide the SVG watermark for the capture,
+  // then paint the watermark back on afterwards using the native Canvas API
+  // (fast, reliable, no SVG parsing involved).
+  const wmHost = el.querySelector(".receipt-watermark");
+  const prevDisplay = wmHost ? wmHost.style.display : null;
+  if (wmHost) wmHost.style.display = "none";
+  return html2canvas(el, { scale: 2, backgroundColor: "#ffffff", useCORS: true, imageTimeout: 4000 }).then(canvas => {
+    if (wmHost) wmHost.style.display = prevDisplay;
+    drawWatermarkOnCanvas(canvas, (STATE.company.name || "OGABUY").toUpperCase());
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) { reject(new Error("toBlob returned null")); return; }
+        window._receiptShareFile = new File([blob], `receipt-${receiptNo}.png`, { type: "image/png" });
+        window._receiptShareUrl = URL.createObjectURL(blob);
+        resolve();
+      }, "image/png");
+    });
+  }).catch(err => { if (wmHost) wmHost.style.display = prevDisplay; throw err; });
+}
+function drawWatermarkOnCanvas(canvas, text) {
+  const ctx = canvas.getContext("2d");
+  ctx.save();
+  ctx.font = "700 26px Poppins, Arial, sans-serif";
+  ctx.fillStyle = "rgba(30,58,138,0.10)";
+  ctx.textBaseline = "middle";
+  ctx.translate(canvas.width/2, canvas.height/2);
+  ctx.rotate(-30 * Math.PI/180);
+  ctx.translate(-canvas.width/2, -canvas.height/2);
+  const stepX = 210, stepY = 130;
+  for (let y = -canvas.height*0.5; y < canvas.height*1.5; y += stepY) {
+    for (let x = -canvas.width*0.5; x < canvas.width*1.5; x += stepX) {
+      ctx.fillText(text, x, y);
+    }
+  }
+  ctx.restore();
+}
+// Kept synchronous on purpose: calling navigator.share()/window.open() directly
+// inside the click handler (no "await" before them) keeps them tied to the
+// user's tap so the browser doesn't treat them as an unsolicited pop-up.
+function shareReceiptImage(receiptNo) {
+  if (window._receiptShareFailed) {
+    toast("Couldn't attach the receipt as a picture (often caused by an external logo image) — sending the text instead.", "warn");
+    fallbackWhatsappShare(receiptNo);
+    return;
+  }
+  const file = window._receiptShareFile;
+  if (!file) {
+    toast("Still preparing the receipt image — give it a second and tap WhatsApp again.", "info");
+    return;
+  }
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: "OGABUY Receipt", text: `Receipt ${receiptNo}` })
+      .catch(err => { if (!err || err.name !== "AbortError") fallbackWhatsappShare(receiptNo); });
+    return;
+  }
+  fallbackWhatsappShare(receiptNo);
+}
+function fallbackWhatsappShare(receiptNo) {
+  if (window._receiptShareUrl) {
+    const a = document.createElement("a");
+    a.href = window._receiptShareUrl; a.download = `receipt-${receiptNo}.png`; a.click();
+    toast("Your browser can't attach images directly — the receipt image downloaded, attach it in WhatsApp manually.", "info");
+  }
+  const text = encodeURIComponent(`Thank you for shopping at ${STATE.company.name||"OGABUY"}! Your receipt number is ${receiptNo}.`);
+  window.open(`https://wa.me/?text=${text}`, "_blank");
+}
+
+/* ---------------------------- Customers ---------------------------- */
+let customerSearch = "";
+function renderCustomers() {
+  const rows = bScope(STATE.customers).filter(c => !customerSearch || [c.name,c.phone,c.email].some(v => (v||"").toLowerCase().includes(customerSearch)));
+  const showBranchCol = isAggregateView();
+  document.getElementById("pageContainer").innerHTML = `
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+      <input class="input max-w-xs" placeholder="Search by name, phone or email…" oninput="customerSearch=this.value.toLowerCase();renderCustomers()">
+      ${!isAggregateView() ? `<button class="btn btn-primary sm:ml-auto" onclick="openCustomerModal()">+ Add customer</button>` : `<p class="text-xs text-slate-400 sm:ml-auto">Pick a specific branch above to add customers.</p>`}
+    </div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto"><table class="tbl">
+        <thead><tr><th>Name</th><th>Phone</th><th>Email</th>${showBranchCol?'<th>Branch</th>':''}<th>Total spent</th><th>Purchases</th><th></th></tr></thead>
+        <tbody>${rows.map(c => `
+          <tr>
+            <td class="font-medium cursor-pointer text-blue-700" onclick="openCustomerHistory('${c.id}')">${esc(c.name)}</td>
+            <td>${esc(c.phone||"—")}</td><td>${esc(c.email||"—")}</td>
+            ${showBranchCol ? `<td class="text-slate-500">${esc(branchName(c.branchId))}</td>` : ""}
+            <td class="font-semibold">${fmtMoney(c.totalSpent||0)}</td>
+            <td>${c.purchaseCount||0}</td>
+            <td class="text-right whitespace-nowrap">
+              <button class="btn btn-outline btn-sm" onclick="openCustomerModal('${c.id}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Delete</button>
+            </td>
+          </tr>`).join("") || `<tr><td colspan="7" class="text-center text-slate-400 py-10">No customers yet.</td></tr>`}</tbody>
+      </table></div>
+    </div>
+  `;
+}
+function openCustomerModal(id) {
+  const c = id ? STATE.customers.find(x => x.id === id) : null;
+  openModal(`
+    <div class="modal-box">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-display font-semibold">${c ? "Edit customer" : "Add customer"}</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700">✕</button>
+      </div>
+      <div class="p-5 space-y-3">
+        <div><label class="lbl">Full name *</label><input id="cf_name" class="input" value="${esc(c?.name)}"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="lbl">Phone number</label><input id="cf_phone" class="input" value="${esc(c?.phone)}"></div>
+          <div><label class="lbl">Email address</label><input id="cf_email" class="input" value="${esc(c?.email)}"></div>
+        </div>
+        <div><label class="lbl">Residential address</label><textarea id="cf_address" class="input" rows="2">${esc(c?.address)}</textarea></div>
+        <div><label class="lbl">Outstanding balance</label><input id="cf_balance" type="number" step="0.01" class="input" value="${c?.outstandingBalance ?? 0}"></div>
+      </div>
+      <div class="p-5 border-t border-slate-100 flex justify-end gap-2">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCustomer(${c ? `'${c.id}'` : 'null'})">${c ? "Save changes" : "Add customer"}</button>
+      </div>
+    </div>
+  `);
+}
+async function saveCustomer(id) {
+  const name = document.getElementById("cf_name").value.trim();
+  if (!name) { toast("Customer name is required.", "error"); return; }
+  const data = {
+    name, phone: document.getElementById("cf_phone").value.trim(), email: document.getElementById("cf_email").value.trim(),
+    address: document.getElementById("cf_address").value.trim(), outstandingBalance: parseFloat(document.getElementById("cf_balance").value)||0,
+  };
+  try {
+    if (id) await db.collection("customers").doc(id).update(data);
+    else {
+      const branchId = requireActiveBranch();
+      if (!branchId) return;
+      data.branchId = branchId; data.totalSpent = 0; data.purchaseCount = 0; data.createdAt = FieldValue.serverTimestamp();
+      await db.collection("customers").add(data);
+    }
+    toast("Customer saved.", "success"); closeModal();
+  } catch (e) { toast(e.message, "error"); }
+}
+async function deleteCustomer(id) { if (!confirm("Delete this customer?")) return; await db.collection("customers").doc(id).delete(); toast("Customer deleted.", "success"); }
+function openCustomerHistory(id) {
+  const c = STATE.customers.find(x => x.id === id);
+  const hist = STATE.sales.filter(s => s.customerId === id).sort((a,b)=> (b.createdAt?.toDate?.()||0) - (a.createdAt?.toDate?.()||0));
+  openModal(`
+    <div class="modal-box" style="max-width:560px">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-display font-semibold">${esc(c.name)} — purchase history</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700">✕</button>
+      </div>
+      <div class="p-5 max-h-[60vh] overflow-y-auto">
+        <div class="grid grid-cols-3 gap-3 mb-4">
+          <div class="stat-card py-2"><p class="text-xs text-slate-500">Total spent</p><p class="font-bold">${fmtMoney(c.totalSpent||0)}</p></div>
+          <div class="stat-card py-2"><p class="text-xs text-slate-500">Orders</p><p class="font-bold">${c.purchaseCount||0}</p></div>
+          <div class="stat-card py-2"><p class="text-xs text-slate-500">Outstanding</p><p class="font-bold">${fmtMoney(c.outstandingBalance||0)}</p></div>
+        </div>
+        <table class="tbl"><thead><tr><th>Receipt</th><th>Date</th><th>Total</th></tr></thead>
+        <tbody>${hist.map(s=>`<tr><td>${esc(s.receiptNo)}</td><td>${fmtDateTime(s.createdAt)}</td><td>${fmtMoney(s.total)}</td></tr>`).join("") || `<tr><td colspan="3" class="text-center text-slate-400 py-6">No purchases yet</td></tr>`}</tbody></table>
+      </div>
+    </div>
+  `);
+}
+
+/* ---------------------------- Suppliers ---------------------------- */
+function renderSuppliers() {
+  const scopedSuppliers = bScope(STATE.suppliers);
+  const showBranchCol = isAggregateView();
+  document.getElementById("pageContainer").innerHTML = `
+    <div class="flex justify-end mb-4">${!isAggregateView() ? `<button class="btn btn-primary" onclick="openSupplierModal()">+ Add supplier</button>` : `<p class="text-xs text-slate-400">Pick a specific branch above to add suppliers.</p>`}</div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto"><table class="tbl">
+        <thead><tr><th>Supplier</th><th>Phone</th><th>Email</th>${showBranchCol?'<th>Branch</th>':''}<th>Products supplied</th><th>Outstanding</th><th></th></tr></thead>
+        <tbody>${scopedSuppliers.map(s => `
+          <tr>
+            <td class="font-medium">${esc(s.name)}</td><td>${esc(s.phone||"—")}</td><td>${esc(s.email||"—")}</td>
+            ${showBranchCol ? `<td class="text-slate-500">${esc(branchName(s.branchId))}</td>` : ""}
+            <td>${esc(s.productsSupplied||"—")}</td>
+            <td class="${(s.outstanding||0)>0?'text-red-600 font-semibold':''}">${fmtMoney(s.outstanding||0)}</td>
+            <td class="text-right whitespace-nowrap">
+              <button class="btn btn-outline btn-sm" onclick="openSupplierModal('${s.id}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteSupplier('${s.id}')">Delete</button>
+            </td>
+          </tr>`).join("") || `<tr><td colspan="7" class="text-center text-slate-400 py-10">No suppliers yet.</td></tr>`}</tbody>
+      </table></div>
+    </div>
+  `;
+}
+function openSupplierModal(id) {
+  const s = id ? STATE.suppliers.find(x => x.id === id) : null;
+  openModal(`
+    <div class="modal-box">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-display font-semibold">${s ? "Edit supplier" : "Add supplier"}</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700">✕</button>
+      </div>
+      <div class="p-5 space-y-3">
+        <div><label class="lbl">Supplier name *</label><input id="sf_name" class="input" value="${esc(s?.name)}"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="lbl">Phone</label><input id="sf_phone" class="input" value="${esc(s?.phone)}"></div>
+          <div><label class="lbl">Email</label><input id="sf_email" class="input" value="${esc(s?.email)}"></div>
+        </div>
+        <div><label class="lbl">Address</label><input id="sf_address" class="input" value="${esc(s?.address)}"></div>
+        <div><label class="lbl">Products supplied</label><input id="sf_products" class="input" value="${esc(s?.productsSupplied)}" placeholder="Comma-separated"></div>
+        <div><label class="lbl">Outstanding payment owed to supplier</label><input id="sf_outstanding" type="number" step="0.01" class="input" value="${s?.outstanding ?? 0}"></div>
+      </div>
+      <div class="p-5 border-t border-slate-100 flex justify-end gap-2">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSupplier(${s ? `'${s.id}'` : 'null'})">${s ? "Save changes" : "Add supplier"}</button>
+      </div>
+    </div>
+  `);
+}
+async function saveSupplier(id) {
+  const name = document.getElementById("sf_name").value.trim();
+  if (!name) { toast("Supplier name is required.", "error"); return; }
+  const data = {
+    name, phone: document.getElementById("sf_phone").value.trim(), email: document.getElementById("sf_email").value.trim(),
+    address: document.getElementById("sf_address").value.trim(), productsSupplied: document.getElementById("sf_products").value.trim(),
+    outstanding: parseFloat(document.getElementById("sf_outstanding").value)||0,
+  };
+  try {
+    if (id) await db.collection("suppliers").doc(id).update(data);
+    else {
+      const branchId = requireActiveBranch();
+      if (!branchId) return;
+      data.branchId = branchId; data.createdAt = FieldValue.serverTimestamp();
+      await db.collection("suppliers").add(data);
+    }
+    toast("Supplier saved.", "success"); closeModal();
+  } catch (e) { toast(e.message, "error"); }
+}
+async function deleteSupplier(id) { if (!confirm("Delete this supplier?")) return; await db.collection("suppliers").doc(id).delete(); toast("Supplier deleted.", "success"); }
+
+/* ---------------------------- Purchases ---------------------------- */
+let purchaseCart = [];
+function renderPurchases() {
+  const scoped = bScope(STATE.purchases);
+  const showBranchCol = isAggregateView();
+  document.getElementById("pageContainer").innerHTML = `
+    <div class="flex justify-end mb-4">${!isAggregateView() ? `<button class="btn btn-primary" onclick="openPurchaseModal()">+ New purchase order</button>` : `<p class="text-xs text-slate-400">Pick a specific branch above to create purchase orders.</p>`}</div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto"><table class="tbl">
+        <thead><tr><th>PO#</th><th>Supplier</th>${showBranchCol?'<th>Branch</th>':''}<th>Items</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>${scoped.map(p => `
+          <tr>
+            <td class="font-medium">${esc(p.poNumber)}</td><td>${esc(p.supplierName)}</td>
+            ${showBranchCol ? `<td class="text-slate-500">${esc(branchName(p.branchId))}</td>` : ""}
+            <td>${(p.items||[]).length} item(s)</td><td class="font-semibold">${fmtMoney(p.total)}</td>
+            <td><span class="badge ${p.status==='received'?'bg-green-100 text-green-700':'bg-amber-100 text-amber-700'}">${esc(p.status)}</span></td>
+            <td class="text-slate-400">${fmtDate(p.createdAt)}</td>
+          </tr>`).join("") || `<tr><td colspan="7" class="text-center text-slate-400 py-10">No purchase orders yet.</td></tr>`}</tbody>
+      </table></div>
+    </div>
+  `;
+}
+function openPurchaseModal() {
+  purchaseCart = [];
+  const branchSuppliers = bScope(STATE.suppliers);
+  const branchProducts = bScope(STATE.products);
+  openModal(`
+    <div class="modal-box" style="max-width:600px">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-display font-semibold">New purchase order</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700">✕</button>
+      </div>
+      <div class="p-5 space-y-3">
+        <div><label class="lbl">Supplier *</label>
+          <select id="po_supplier" class="input"><option value="">Select supplier…</option>${branchSuppliers.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select>
+        </div>
+        <div class="flex gap-2 items-end">
+          <div class="flex-1"><label class="lbl">Product</label>
+            <select id="po_product" class="input">${branchProducts.map(p=>`<option value="${p.id}" data-cost="${p.costPrice}">${esc(p.name)}</option>`).join("")}</select>
+          </div>
+          <div style="width:90px"><label class="lbl">Qty</label><input id="po_qty" type="number" class="input" value="1"></div>
+          <button class="btn btn-outline" onclick="addPurchaseLine()">Add</button>
+        </div>
+        <div id="po_lines" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
+        <div class="text-right font-bold" id="po_total">Total: ${fmtMoney(0)}</div>
+      </div>
+      <div class="p-5 border-t border-slate-100 flex justify-end gap-2">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitPurchase('pending')">Save as pending</button>
+        <button class="btn btn-orange" onclick="submitPurchase('received')">Mark received &amp; update stock</button>
+      </div>
+    </div>
+  `);
+}
+function addPurchaseLine() {
+  const sel = document.getElementById("po_product");
+  const productId = sel.value;
+  const p = STATE.products.find(x => x.id === productId);
+  const qty = parseInt(document.getElementById("po_qty").value)||1;
+  if (!p || qty <= 0) return;
+  purchaseCart.push({ productId, name: p.name, cost: Number(p.costPrice)||0, qty });
+  renderPurchaseLines();
+}
+function renderPurchaseLines() {
+  document.getElementById("po_lines").innerHTML = purchaseCart.map((l,i) => `
+    <div class="flex justify-between items-center text-sm bg-slate-50 rounded-lg px-3 py-1.5">
+      <span>${esc(l.name)} × ${l.qty}</span>
+      <span class="flex items-center gap-2"><span>${fmtMoney(l.cost*l.qty)}</span><button onclick="purchaseCart.splice(${i},1);renderPurchaseLines()" class="text-red-400">✕</button></span>
+    </div>`).join("");
+  const total = purchaseCart.reduce((a,l)=>a+l.cost*l.qty,0);
+  document.getElementById("po_total").textContent = "Total: " + fmtMoney(total);
+}
+async function submitPurchase(status) {
+  const branchId = requireActiveBranch();
+  if (!branchId) return;
+  const supplierId = document.getElementById("po_supplier").value;
+  const supplier = STATE.suppliers.find(s => s.id === supplierId);
+  if (!supplier || !purchaseCart.length) { toast("Select a supplier and add at least one item.", "error"); return; }
+  const total = purchaseCart.reduce((a,l)=>a+l.cost*l.qty,0);
+  const poNumber = "PO-" + Date.now().toString().slice(-8);
+  try {
+    await db.collection("purchases").add({
+      poNumber, branchId, supplierId, supplierName: supplier.name, items: purchaseCart, total, status, createdAt: FieldValue.serverTimestamp()
+    });
+    if (status === "received") {
+      const batch = db.batch();
+      purchaseCart.forEach(l => {
+        const p = STATE.products.find(x => x.id === l.productId);
+        batch.update(db.collection("products").doc(l.productId), { quantity: (Number(p?.quantity)||0) + l.qty, updatedAt: FieldValue.serverTimestamp() });
+      });
+      await batch.commit();
+      purchaseCart.forEach(l => logStockMove(l.productId, l.name, "restock", l.qty, "Purchase " + poNumber));
+    }
+    toast("Purchase order saved.", "success"); closeModal();
+  } catch (e) { toast(e.message, "error"); }
+}
+
+/* ---------------------------- Reports ---------------------------- */
+function renderReports() {
+  document.getElementById("pageContainer").innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      ${reportCard("Sales report", "Daily, weekly, monthly or custom range of all sales.", "sales")}
+      ${reportCard("Product sales report", "Units and revenue by product.", "productSales")}
+      ${reportCard("Customer purchase report", "Spend and order count by customer.", "customers")}
+      ${reportCard("Inventory report", "Current stock levels and valuation.", "inventory")}
+      ${reportCard("Profit &amp; loss report", "Revenue, cost of goods and gross profit.", "pnl")}
+      ${reportCard("Stock movement report", "Restocks, sales, damages and returns.", "stockmoves")}
+    </div>
+  `;
+}
+function reportCard(title, desc, key) {
+  return `<div class="card p-4 sm:p-5">
+    <h3 class="font-display font-semibold text-sm mb-1">${title}</h3>
+    <p class="text-xs text-slate-500 mb-3">${desc}</p>
+    <div class="flex flex-wrap gap-2 items-center">
+      <input type="date" id="rep_${key}_from" class="input w-auto text-xs">
+      <span class="text-xs text-slate-400">to</span>
+      <input type="date" id="rep_${key}_to" class="input w-auto text-xs">
+      <button class="btn btn-outline btn-sm ml-auto" onclick="exportReport('${key}','csv')">Export CSV</button>
+      <button class="btn btn-primary btn-sm" onclick="exportReport('${key}','pdf')">Export PDF</button>
+    </div>
+  </div>`;
+}
+function reportDateRange(key) {
+  const fromEl = document.getElementById(`rep_${key}_from`), toEl = document.getElementById(`rep_${key}_to`);
+  const from = fromEl?.value ? new Date(fromEl.value + "T00:00:00") : new Date(0);
+  const to = toEl?.value ? new Date(toEl.value + "T23:59:59") : new Date();
+  return { from, to };
+}
+function exportReport(key, fmt) {
+  const { from, to } = reportDateRange(key);
+  let head = [], rows = [], title = "", filenameBase = key;
+  if (key === "sales") {
+    title = "Sales Report";
+    head = ["Receipt#","Date","Customer","Cashier","Payment","Subtotal","Discount","Tax","Total"];
+    rows = salesInRange(from, to).map(s => [s.receiptNo, fmtDateTime(s.createdAt), s.customerName, s.cashier, s.paymentMethod, s.subtotal, s.discount, s.tax, s.total]);
+  } else if (key === "productSales") {
+    title = "Product Sales Report";
+    const map = {};
+    salesInRange(from,to).forEach(s => (s.items||[]).forEach(i => {
+      map[i.name] = map[i.name] || { qty: 0, revenue: 0 };
+      map[i.name].qty += i.qty; map[i.name].revenue += i.total;
+    }));
+    head = ["Product","Units sold","Revenue"];
+    rows = Object.entries(map).map(([name,v]) => [name, v.qty, v.revenue.toFixed(2)]);
+  } else if (key === "customers") {
+    title = "Customer Purchase Report";
+    head = ["Customer","Phone","Email","Total spent","Orders","Outstanding"];
+    rows = bScope(STATE.customers).map(c => [c.name, c.phone||"", c.email||"", (c.totalSpent||0).toFixed(2), c.purchaseCount||0, (c.outstandingBalance||0).toFixed(2)]);
+  } else if (key === "inventory") {
+    title = "Inventory Report";
+    head = ["Product","SKU","Category","Qty","Cost price","Selling price","Stock value (cost)"];
+    rows = bScope(STATE.products).map(p => [p.name, p.sku||"", p.category||"", p.quantity||0, (p.costPrice||0).toFixed(2), (p.sellingPrice||0).toFixed(2), ((p.costPrice||0)*(p.quantity||0)).toFixed(2)]);
+  } else if (key === "pnl") {
+    title = "Profit & Loss Report";
+    const sales = salesInRange(from,to);
+    let revenue = 0, cogs = 0;
+    sales.forEach(s => (s.items||[]).forEach(i => {
+      revenue += i.total;
+      const p = STATE.products.find(x => x.id === i.productId);
+      cogs += (p ? Number(p.costPrice)||0 : 0) * i.qty;
+    }));
+    head = ["Metric","Amount"];
+    rows = [["Revenue", revenue.toFixed(2)], ["Cost of goods sold", cogs.toFixed(2)], ["Gross profit", (revenue-cogs).toFixed(2)]];
+  } else if (key === "stockmoves") {
+    title = "Stock Movement Report";
+    head = ["Product","Type","Qty","Note","User","Date"];
+    rows = bScope(STATE.stockMoves).filter(m => { const t = m.date?.toDate ? m.date.toDate() : new Date(m.date); return t>=from && t<=to; })
+      .map(m => [m.productName, m.type, m.qty, m.note||"", m.user||"", fmtDateTime(m.date)]);
+  }
+  if (!rows.length) { toast("No data found for the selected range.", "warn"); return; }
+  if (fmt === "csv") csvDownload(filenameBase + ".csv", [head, ...rows]);
+  else pdfDownload(title, head, rows, filenameBase + ".pdf");
+}
+
+/* ---------------------------- Staff & Roles ---------------------------- */
+const ALL_ROLES = ["Super Admin","Manager","Cashier","Sales Representative","Store Keeper"];
+function renderStaff() {
+  const isSA = STATE.staff.role === "Super Admin";
+  const rows = isSA
+    ? (isAggregateView() ? STATE.staffList : STATE.staffList.filter(s => s.role === "Super Admin" || s.branchId === STATE.currentBranchId))
+    : STATE.staffList.filter(s => s.branchId === STATE.staff.branchId);
+  const showBranchCol = isSA;
+  document.getElementById("pageContainer").innerHTML = `
+    <div class="flex justify-end mb-4">${isSA ? `<button class="btn btn-primary" onclick="openStaffModal()">+ Add staff member</button>` : `<p class="text-xs text-slate-400">Only the Super Admin can add or edit staff accounts.</p>`}</div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto"><table class="tbl">
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th>${showBranchCol?'<th>Branch</th>':''}<th>Status</th>${isSA?'<th></th>':''}</tr></thead>
+        <tbody>${rows.map(s => `
+          <tr>
+            <td class="font-medium">${esc(s.name)}</td><td>${esc(s.email)}</td>
+            <td><span class="badge bg-blue-50 text-blue-700">${esc(s.role)}</span></td>
+            ${showBranchCol ? `<td class="text-slate-500">${s.role==='Super Admin'?'All branches':esc(branchName(s.branchId))}</td>` : ""}
+            <td>${s.active===false ? `<span class="badge bg-red-100 text-red-700">Disabled</span>` : `<span class="badge bg-green-100 text-green-700">Active</span>`}</td>
+            ${isSA ? `<td class="text-right whitespace-nowrap">
+              <button class="btn btn-outline btn-sm" onclick="openStaffModal('${s.id}')">Edit role</button>
+              ${s.id !== STATE.user.uid ? `<button class="btn btn-danger btn-sm" onclick="toggleStaffActive('${s.id}',${s.active===false})">${s.active===false?'Enable':'Disable'}</button>` : ""}
+            </td>` : ""}
+          </tr>`).join("")}</tbody>
+      </table></div>
+    </div>
+  `;
+}
+function openStaffModal(id) {
+  const s = id ? STATE.staffList.find(x => x.id === id) : null;
+  const defaultBranch = s?.branchId || (activeBranchId() && activeBranchId() !== "ALL" ? activeBranchId() : (STATE.branches[0]?.id || ""));
+  openModal(`
+    <div class="modal-box">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-display font-semibold">${s ? "Edit staff role" : "Add staff member"}</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700">✕</button>
+      </div>
+      <div class="p-5 space-y-3">
+        ${s ? `<p class="text-sm text-slate-500">${esc(s.name)} — ${esc(s.email)}</p>` : `
+        <div><label class="lbl">Full name *</label><input id="stf_name" class="input"></div>
+        <div><label class="lbl">Email *</label><input id="stf_email" type="email" class="input"></div>
+        <div><label class="lbl">Temporary password *</label><input id="stf_password" type="text" class="input" placeholder="Min. 6 characters"></div>
+        `}
+        <div><label class="lbl">Role</label>
+          <select id="stf_role" class="input">${ALL_ROLES.map(r => `<option ${s?.role===r?'selected':''}>${r}</option>`).join("")}</select>
+        </div>
+        <div><label class="lbl">Branch <span class="text-slate-400 font-normal normal-case">(not needed for Super Admin — they see every branch)</span></label>
+          <select id="stf_branch" class="input">
+            <option value="">— Select branch —</option>
+            ${STATE.branches.map(b => `<option value="${b.id}" ${defaultBranch===b.id?'selected':''}>${esc(b.name)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      <div class="p-5 border-t border-slate-100 flex justify-end gap-2">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveStaff(${s ? `'${s.id}'` : 'null'})">${s ? "Save changes" : "Create account"}</button>
+      </div>
+    </div>
+  `);
+}
+async function saveStaff(id) {
+  const role = document.getElementById("stf_role").value;
+  const branchId = document.getElementById("stf_branch").value || null;
+  if (role !== "Super Admin" && !branchId) { toast("Select a branch for this staff member.", "error"); return; }
+  try {
+    if (id) {
+      await db.collection("staff").doc(id).update({ role, branchId: role === "Super Admin" ? null : branchId });
+      toast("Staff updated.", "success"); closeModal(); return;
+    }
+    const name = document.getElementById("stf_name").value.trim();
+    const email = document.getElementById("stf_email").value.trim();
+    const password = document.getElementById("stf_password").value;
+    if (!name || !email || password.length < 6) { toast("Fill all fields — password must be 6+ characters.", "error"); return; }
+    const cred = await secondaryAuth.createUserWithEmailAndPassword(email, password);
+    await db.collection("staff").doc(cred.user.uid).set({ name, email, role, branchId: role === "Super Admin" ? null : branchId, active: true, createdAt: FieldValue.serverTimestamp() });
+    await secondaryAuth.signOut();
+    toast("Staff account created.", "success"); closeModal();
+  } catch (e) { toast(e.message, "error"); }
+}
+async function toggleStaffActive(id, makeActive) {
+  await db.collection("staff").doc(id).update({ active: makeActive });
+  toast(makeActive ? "Staff account enabled." : "Staff account disabled.", "success");
+}
+
+/* ---------------------------- Branches ---------------------------- */
+function unassignedCounts() {
+  return {
+    products: STATE.products.filter(p => !p.branchId).length,
+    customers: STATE.customers.filter(c => !c.branchId).length,
+    suppliers: STATE.suppliers.filter(s => !s.branchId).length,
+    sales: STATE.sales.filter(s => !s.branchId).length,
+    purchases: STATE.purchases.filter(p => !p.branchId).length,
+  };
+}
+function renderBranches() {
+  const counts = unassignedCounts();
+  const totalUnassigned = Object.values(counts).reduce((a,b)=>a+b,0);
+  document.getElementById("pageContainer").innerHTML = `
+    ${totalUnassigned > 0 ? `
+    <div class="card p-4 mb-4" style="border-color:#FDE68A;background:#FFFBEB">
+      <p class="text-sm font-semibold mb-1">Records from before branches were set up</p>
+      <p class="text-xs text-slate-500 mb-3">${counts.products} product(s), ${counts.customers} customer(s), ${counts.suppliers} supplier(s), ${counts.sales} sale(s) and ${counts.purchases} purchase(s) aren't attached to any branch yet — they only show up in "All branches" view for now. Assign them to a branch so they show up properly:</p>
+      <div class="flex flex-wrap gap-2 items-center">
+        <select id="migrateBranchSelect" class="input w-auto">
+          ${STATE.branches.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join("")}
+        </select>
+        <button class="btn btn-orange btn-sm" onclick="migrateUnassignedToBranch()">Assign all to this branch</button>
+      </div>
+    </div>` : ""}
+    <div class="flex justify-end mb-4"><button class="btn btn-primary" onclick="openBranchModal()">+ Add branch</button></div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      ${STATE.branches.map(b => {
+        const prodCount = STATE.products.filter(p => p.branchId === b.id).length;
+        const salesCount = STATE.sales.filter(s => s.branchId === b.id).length;
+        const revenue = STATE.sales.filter(s => s.branchId === b.id).reduce((a,s)=>a+(Number(s.total)||0),0);
+        return `<div class="card p-4">
+          <div class="flex items-start justify-between mb-2">
+            <h3 class="font-display font-semibold">${esc(b.name)}</h3>
+            <span class="badge bg-blue-50 text-blue-700">${STATE.currentBranchId===b.id?'Active':''}</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">${esc(b.address||"No address set")}${b.phone?" · "+esc(b.phone):""}</p>
+          <div class="grid grid-cols-3 gap-2 mb-3 text-center">
+            <div class="stat-card py-2"><p class="text-[11px] text-slate-500">Products</p><p class="font-bold text-sm">${prodCount}</p></div>
+            <div class="stat-card py-2"><p class="text-[11px] text-slate-500">Sales</p><p class="font-bold text-sm">${salesCount}</p></div>
+            <div class="stat-card py-2"><p class="text-[11px] text-slate-500">Revenue</p><p class="font-bold text-sm">${fmtMoney(revenue)}</p></div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-outline btn-sm flex-1" onclick="setActiveBranch('${b.id}');setPage('dashboard')">View dashboard</button>
+            <button class="btn btn-outline btn-sm" onclick="openBranchModal('${b.id}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteBranch('${b.id}')">Delete</button>
+          </div>
+        </div>`;
+      }).join("") || `<p class="text-sm text-slate-400 col-span-full text-center py-10">No branches yet — add your first one.</p>`}
+    </div>
+  `;
+}
+async function migrateUnassignedToBranch() {
+  const branchId = document.getElementById("migrateBranchSelect").value;
+  if (!branchId) { toast("Add a branch first.", "warn"); return; }
+  if (!confirm("Assign all unbranched products, customers, suppliers, sales and purchases to this branch? This can't be undone.")) return;
+  const jobs = [
+    ["products", STATE.products], ["customers", STATE.customers], ["suppliers", STATE.suppliers],
+    ["sales", STATE.sales], ["purchases", STATE.purchases],
+  ];
+  try {
+    for (const [col, arr] of jobs) {
+      const ids = arr.filter(x => !x.branchId).map(x => x.id);
+      for (let i = 0; i < ids.length; i += 400) {
+        const chunk = ids.slice(i, i+400);
+        const batch = db.batch();
+        chunk.forEach(id => batch.update(db.collection(col).doc(id), { branchId }));
+        await batch.commit();
+      }
+    }
+    toast("Existing records assigned to " + branchName(branchId) + ".", "success");
+  } catch (e) { toast(e.message, "error"); }
+}
+function openBranchModal(id) {
+  const b = id ? STATE.branches.find(x => x.id === id) : null;
+  openModal(`
+    <div class="modal-box">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-display font-semibold">${b ? "Edit branch" : "Add branch"}</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700">✕</button>
+      </div>
+      <div class="p-5 space-y-3">
+        <div><label class="lbl">Branch name *</label><input id="br_name" class="input" value="${esc(b?.name)}" placeholder="e.g. Ikeja Branch"></div>
+        <div><label class="lbl">Address</label><input id="br_address" class="input" value="${esc(b?.address)}"></div>
+        <div><label class="lbl">Phone</label><input id="br_phone" class="input" value="${esc(b?.phone)}"></div>
+      </div>
+      <div class="p-5 border-t border-slate-100 flex justify-end gap-2">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveBranch(${b ? `'${b.id}'` : 'null'})">${b ? "Save changes" : "Add branch"}</button>
+      </div>
+    </div>
+  `);
+}
+async function saveBranch(id) {
+  const name = document.getElementById("br_name").value.trim();
+  if (!name) { toast("Branch name is required.", "error"); return; }
+  const data = { name, address: document.getElementById("br_address").value.trim(), phone: document.getElementById("br_phone").value.trim() };
+  try {
+    if (id) await db.collection("branches").doc(id).update(data);
+    else { data.createdAt = FieldValue.serverTimestamp(); await db.collection("branches").add(data); }
+    toast("Branch saved.", "success"); closeModal();
+  } catch (e) { toast(e.message, "error"); }
+}
+async function deleteBranch(id) {
+  const hasData = STATE.products.some(p=>p.branchId===id) || STATE.sales.some(s=>s.branchId===id);
+  if (hasData && !confirm("This branch already has products or sales recorded. Delete it anyway? (Its records will stay but won't show under any branch.)")) return;
+  if (!hasData && !confirm("Delete this branch?")) return;
+  await db.collection("branches").doc(id).delete();
+  if (STATE.currentBranchId === id) STATE.currentBranchId = "ALL";
+  toast("Branch deleted.", "success");
+}
+
+/* ---------------------------- Settings ---------------------------- */
+function renderSettings() {
+  const c = STATE.company;
+  document.getElementById("pageContainer").innerHTML = `
+    <div class="max-w-2xl">
+      <div class="card p-5">
+        <h3 class="font-display font-semibold mb-4">Company profile</h3>
+        <div class="space-y-3">
+          <div><label class="lbl">Business name</label><input id="set_name" class="input" value="${esc(c.name)}"></div>
+          <div><label class="lbl">Address</label><textarea id="set_address" class="input" rows="2">${esc(c.address)}</textarea></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="lbl">Phone</label><input id="set_phone" class="input" value="${esc(c.phone)}"></div>
+            <div><label class="lbl">Email</label><input id="set_email" class="input" value="${esc(c.email)}"></div>
+          </div>
+          <div><label class="lbl">Logo URL</label><input id="set_logo" class="input" value="${esc(c.logoUrl)}" placeholder="https://…"></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="lbl">VAT / Tax rate (%)</label><input id="set_tax" type="number" step="0.01" class="input" value="${c.taxRate ?? 7.5}"></div>
+            <div><label class="lbl">Currency symbol</label><input id="set_currency" class="input" value="${esc(c.currency||'₦')}"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary mt-4" onclick="saveSettings()">Save settings</button>
+      </div>
+      <div class="card p-5 mt-5">
+        <h3 class="font-display font-semibold mb-1">Your account</h3>
+        <p class="text-sm text-slate-500 mb-3">${esc(STATE.staff.name)} · ${esc(STATE.staff.role)}</p>
+        <button class="btn btn-outline" onclick="doLogout()">Sign out</button>
+      </div>
+    </div>
+  `;
+}
+async function saveSettings() {
+  const data = {
+    name: document.getElementById("set_name").value.trim(),
+    address: document.getElementById("set_address").value.trim(),
+    phone: document.getElementById("set_phone").value.trim(),
+    email: document.getElementById("set_email").value.trim(),
+    logoUrl: document.getElementById("set_logo").value.trim(),
+    taxRate: parseFloat(document.getElementById("set_tax").value)||0,
+    currency: document.getElementById("set_currency").value.trim() || "₦",
+  };
+  try { await db.collection("settings").doc("company").set(data, { merge: true }); toast("Settings saved.", "success"); }
+  catch (e) { toast(e.message, "error"); }
+}
+
+/* ---------------------------- Misc UI ---------------------------- */
+function toggleDarkMode() { toast("Dark mode toggle — coming soon in this build.", "info"); }
+const ACCESS_PIN = "1990";
+function checkPinGate() {
+  const input = document.getElementById("pinInput");
+  const err = document.getElementById("pinError");
+  if (input.value === ACCESS_PIN) {
+    document.getElementById("pinGate").remove();
+  } else {
+    err.classList.remove("hidden");
+    input.value = "";
+    input.focus();
+  }
+}
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("yearNow").textContent = new Date().getFullYear();
+  document.getElementById("bootScreen").classList.remove("hidden");
+  document.getElementById("authScreen").classList.add("hidden");
+  document.getElementById("pinInput").focus();
+});
+document.addEventListener("click", (e) => {
+  const panel = document.getElementById("notifPanel");
+  const btn = e.target.closest("[onclick*='toggleNotifPanel']");
+  if (panel && !panel.classList.contains("hidden") && !panel.contains(e.target) && !btn) panel.classList.add("hidden");
+});
+
+/* ---------------------------- PWA: install + service worker ---------------------------- */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch((e) => console.error("Service worker registration failed:", e));
+  });
+}
+let _deferredInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  const btn = document.getElementById("installAppBtn");
+  if (btn) btn.classList.remove("hidden");
+});
+async function installApp() {
+  if (!_deferredInstallPrompt) { toast("Use your browser's \"Add to Home screen\" / \"Install app\" menu option.", "info"); return; }
+  _deferredInstallPrompt.prompt();
+  await _deferredInstallPrompt.userChoice;
+  _deferredInstallPrompt = null;
+  const btn = document.getElementById("installAppBtn");
+  if (btn) btn.classList.add("hidden");
+}
+window.addEventListener("appinstalled", () => {
+  const btn = document.getElementById("installAppBtn");
+  if (btn) btn.classList.add("hidden");
+  toast("OGABUY installed — you can now open it like any other app.", "success");
+});
+</script>
+</body>
+</html>

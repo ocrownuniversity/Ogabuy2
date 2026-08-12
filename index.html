@@ -1231,7 +1231,6 @@ function renderPOS() {
             <span class="text-slate-500">Discount</span>
             <input id="posDiscountInput" type="number" min="0" value="${posDiscount}" class="input w-24 text-right" oninput="posDiscount=parseFloat(this.value)||0;renderPOSCart()">
           </div>
-          <div class="flex items-center justify-between text-sm"><span class="text-slate-500">VAT/Tax (${STATE.company.taxRate||0}%)</span><span id="posTax" class="font-medium">${fmtMoney(0)}</span></div>
           <div class="flex items-center justify-between text-base font-bold pt-1 border-t border-slate-100"><span>Total</span><span id="posTotal" class="text-blue-700">${fmtMoney(0)}</span></div>
         </div>
         <div class="mt-3">
@@ -1295,10 +1294,8 @@ function removeFromCart(productId) { STATE.cart = STATE.cart.filter(c => c.produ
 function cartTotals() {
   const subtotal = STATE.cart.reduce((a,c) => a + c.price*c.qty, 0);
   const discount = Math.min(posDiscount||0, subtotal);
-  const taxable = subtotal - discount;
-  const tax = taxable * ((Number(STATE.company.taxRate)||0)/100);
-  const total = taxable + tax;
-  return { subtotal, discount, tax, total };
+  const total = subtotal - discount;
+  return { subtotal, discount, tax: 0, total };
 }
 
 function renderPOSCart() {
@@ -1320,7 +1317,7 @@ function renderPOSCart() {
   `).join("") : `<p class="text-xs text-slate-400 text-center py-6">Cart is empty — tap a product to add it.</p>`;
   const t = cartTotals();
   const set = (id,val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  set("posSubtotal", fmtMoney(t.subtotal)); set("posTax", fmtMoney(t.tax)); set("posTotal", fmtMoney(t.total));
+  set("posSubtotal", fmtMoney(t.subtotal)); set("posTotal", fmtMoney(t.total));
 }
 
 async function completeSale() {
@@ -2240,10 +2237,7 @@ function renderSettings() {
             <div><label class="lbl">Email</label><input id="set_email" class="input" value="${esc(c.email)}"></div>
           </div>
           <div><label class="lbl">Logo URL</label><input id="set_logo" class="input" value="${esc(c.logoUrl)}" placeholder="https://…"></div>
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="lbl">VAT / Tax rate (%)</label><input id="set_tax" type="number" step="0.01" class="input" value="${c.taxRate ?? 7.5}"></div>
-            <div><label class="lbl">Currency symbol</label><input id="set_currency" class="input" value="${esc(c.currency||'₦')}"></div>
-          </div>
+          <div><label class="lbl">Currency symbol</label><input id="set_currency" class="input" value="${esc(c.currency||'₦')}"></div>
         </div>
         <button class="btn btn-primary mt-4" onclick="saveSettings()">Save settings</button>
       </div>
@@ -2262,7 +2256,7 @@ async function saveSettings() {
     phone: document.getElementById("set_phone").value.trim(),
     email: document.getElementById("set_email").value.trim(),
     logoUrl: document.getElementById("set_logo").value.trim(),
-    taxRate: parseFloat(document.getElementById("set_tax").value)||0,
+    taxRate: 0,
     currency: document.getElementById("set_currency").value.trim() || "₦",
   };
   try { await db.collection("settings").doc("company").set(data, { merge: true }); toast("Settings saved.", "success"); }
